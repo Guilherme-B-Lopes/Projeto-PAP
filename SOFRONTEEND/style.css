@@ -1,0 +1,711 @@
+/* Reset e Estilos Gerais */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Menu Transparente */
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Transparente inicialmente */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+    padding: 1rem 0;
+}
+nav:hover {
+    opacity: 1;
+}
+nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+}
+nav ul li {
+    margin: 0 2rem;
+}
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+nav ul li a:hover {
+    color: #ffd700;
+}
+
+/* Seção Hero com Slideshow */
+.hero {
+    position: relative;
+    height: 500px; /* Limite de altura */
+    overflow: hidden;
+    width: 100%;
+}
+.slideshow {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+.slide.active {
+    opacity: 1;
+}
+.slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Preenche a largura sem distorcer */
+}
+
+/* Conteúdo Principal com Texto de Exemplo */
+.main-content {
+    padding: 60px 0; /* Espaço para o menu fixo */
+    text-align: center;
+}
+.main-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+.main-content p {
+    font-size: 1.2rem;
+    max-width: 800px;
+    margin: 0 auto 2rem;
+}
+/* Wrappers de linha para animação */
+.main-content .container p .line-clip {
+    display: block;
+    overflow: hidden;
+}
+.main-content .container p .line-inner {
+    display: inline-block;
+    will-change: transform;
+}
+
+/* Seção de Produtos - Grid 3x4 (3 linhas x 4 colunas) */
+.products {
+    padding: 60px 0;
+    background: #f4f4f4;
+}
+.products h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.project-item {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: pointer;
+    border: 1px solid #eee;
+}
+.project-item:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+}
+.project-thumb {
+    position: relative;
+}
+.project-thumb img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+.project-thumb .badge {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    border-radius: 999px;
+    text-transform: capitalize;
+}
+.project-info {
+    padding: 14px 16px 16px;
+}
+.project-info h3 {
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+    color: #222;
+}
+.project-info .turma {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* Modal para Detalhes do Produto */
+.modal {
+    display: none; /* Hidden por padrão */
+    position: fixed;
+    z-index: 2000; /* Acima do menu */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8); /* Overlay escuro */
+    animation: fadeIn 0.3s ease;
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 600px;
+    max-height: 80%;
+    overflow-y: auto;
+    position: relative;
+    animation: slideIn 0.3s ease;
+}
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    z-index: 1;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+}
+.modal-header {
+    background: #333;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px 10px 0 0;
+}
+.modal-body {
+    padding: 20px;
+    text-align: center;
+}
+.modal-body img {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.modal-body .modal-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.modal-body .modal-gallery img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+.modal-body .modal-video {
+    margin-top: 8px;
+}
+.modal-body h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+.modal-body p.price {
+    font-size: 1.5rem;
+    color: #e74c3c;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+.modal-body p.description {
+    text-align: left;
+    line-height: 1.8;
+    color: #555;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes slideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Rodapé */
+footer {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 2rem 0;
+}
+footer h3 {
+    margin-bottom: 1rem;
+}
+footer p {
+    margin-bottom: 0.5rem;
+}
+footer a {
+    color: #ffd700;
+    text-decoration: none;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .project-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    nav ul {
+        flex-direction: column;
+        text-align: center;
+    }
+    nav ul li {
+        margin: 0.5rem 0;
+    }
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+}
+/* Estilos para o Calendário */
+.calendar-section {
+    padding: 100px 0 60px;
+    background: #f9f9f9;
+    min-height: calc(100vh - 150px);
+}
+.calendar-section h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+    color: #333;
+}
+
+/* Demo: container e quadrado animável */
+#docs-demos {
+    overflow: auto;
+}
+.docs-demo {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    height: 240px;
+    margin: 24px auto;
+    border: 1px dashed #bbb;
+    border-radius: 8px;
+    background: #fff;
+}
+.docs-demo .square {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 60px;
+    height: 60px;
+    background: #4CAF50;
+    border-radius: 8px;
+    transform: translate(-50%, -50%);
+}
+.calendar-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+}
+.calendar-header button {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+.calendar-header button:hover {
+    background-color: #1976D2;
+}
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+.calendar-grid .day-name {
+    background-color: #eee;
+    font-weight: bold;
+    padding: 10px;
+    text-align: center;
+    border-radius: 4px;
+}
+.calendar-grid .day {
+    background-color: #fefefe;
+    padding: 10px;
+    min-height: 80px; /* Altura mínima para os dias */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: right;
+    position: relative;
+    cursor: pointer; /* Indica que o dia é clicável */
+    transition: background-color 0.2s;
+}
+.calendar-grid .day:hover:not(.inactive) {
+    background-color: #e0e0e0;
+}
+.calendar-grid .day.inactive {
+    background-color: #f0f0f0;
+    color: #ccc;
+    cursor: not-allowed;
+}
+.calendar-grid .day.current-day {
+    border: 2px solid #2196F3;
+    background-color: #e3f2fd;
+}
+.calendar-grid .day .date-number {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+.calendar-grid .day .event-indicator {
+    display: block;
+    font-size: 0.8em;
+    color: #4CAF50;
+    text-align: left;
+    margin-top: 5px;
+    font-weight: bold;
+}
+.calendar-grid .day .event-indicator.multiple {
+    color: #FF9800;
+}
+
+/* Estilos para a lista de eventos no modal/admin */
+.event-list {
+    margin-top: 15px;
+    text-align: left;
+}
+.event-list-item {
+    background-color: #e8f5e9; /* Cor para eventos */
+    border-left: 4px solid #4CAF50;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.event-list-item.admin-event-item { /* Estilo específico para admin */
+    background-color: #f0f4c3; /* Amarelo claro */
+    border-left-color: #FFC107; /* Amarelo */
+}
+.event-list-item span {
+    flex-grow: 1;
+}
+.event-list-item .event-actions button {
+    background: none;
+    border: none;
+    color: #777;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-left: 5px;
+    transition: color 0.2s;
+}
+.event-list-item .event-actions button:hover {
+    color: #333;
+}
+.event-list-item .event-actions button.edit-event-btn {
+    color: #2196F3;
+}
+.event-list-item .event-actions button.delete-event-btn {
+    color: #f44336;
+}
+
+/* Modal de Eventos (para exibir eventos de um dia específico) */
+.event-modal {
+    display: none;
+    position: fixed;
+    z-index: 4000; /* Acima de outros modais */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
+    animation: fadeIn 0.3s ease;
+}
+.event-modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90%;
+    overflow-y: auto;
+    position: relative;
+    animation: slideIn 0.3s ease;
+}
+.event-modal-content h3 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-size: 1.8rem;
+}
+.event-modal-content .close-event-modal {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #aaa;
+}
+.event-modal-content .close-event-modal:hover {
+    color: #000;
+}
+
+/* Formulário de Eventos na Admin */
+.event-management-section {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid #eee;
+}
+.event-management-section h3 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    color: #333;
+}
+.event-form-container {
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.event-form-container .form-group {
+    margin-bottom: 1rem;
+    text-align: left;
+}
+.event-form-container .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #555;
+}
+.event-form-container .form-group input[type="text"],
+.event-form-container .form-group input[type="date"],
+.event-form-container .form-group input[type="time"] {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+.event-form-container .form-actions {
+    text-align: right;
+    margin-top: 1.5rem;
+}
+.event-form-container .form-actions button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-left: 10px;
+    transition: background-color 0.3s;
+}
+.event-form-container .form-actions .add-event-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+}
+.event-form-container .form-actions .add-event-btn:hover {
+    background-color: #45a049;
+}
+.event-form-container .form-actions .cancel-event-edit-btn {
+    background-color: #ccc;
+    color: #333;
+    border: 1px solid #bbb;
+}
+.event-form-container .form-actions .cancel-event-edit-btn:hover {
+    background-color: #bbb;
+}
+
+/* Estilos para a tabela de gerenciamento de eventos (similar à de produtos) */
+.event-management-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+    background: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.event-management-table th,
+.event-management-table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+    vertical-align: middle;
+}
+.event-management-table th {
+    background-color: #333;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.event-management-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+.event-management-table tr:hover {
+    background-color: #e9e9e9;
+}
+.event-management-table .actions button {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: background-color 0.3s;
+}
+.event-management-table .actions button.edit-btn:hover {
+    background-color: #1976D2;
+}
+.event-management-table .actions button.delete-btn {
+    background-color: #f44336;
+}
+.event-management-table .actions button.delete-btn:hover {
+    background-color: #d32f2f;
+}
+
+/* Responsividade para a tabela de eventos */
+@media (max-width: 768px) {
+    .event-management-table, .event-management-table tbody, .event-management-table tr, .event-management-table td, .event-management-table th {
+        display: block;
+    }
+    .event-management-table thead {
+        display: none;
+    }
+    .event-management-table tr {
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .event-management-table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+    }
+    .event-management-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: calc(50% - 30px);
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #333;
+    }
+    .event-management-table td:last-child {
+        border-bottom: 0;
+    }
+    .event-management-table .actions {
+        text-align: center;
+        padding-top: 10px;
+    }
+    .event-management-table .actions button {
+        margin: 5px;
+    }
+}
+
+/* Remover estilos do calendário pequeno na admin, pois não será mais usado */
+.admin-calendar-wrapper {
+    display: none; /* Esconde o calendário pequeno */
+}
+/* Remover estilos da lista de eventos por dia na admin, pois será substituída pela tabela */
+#adminEventList {
+    display: none; /* Esconde a lista de eventos por dia */
+}
+
+
+/* Estilos para Projetos por Categoria */
+.project-item.completo {
+    border-left: 4px solid #4CAF50; 
+}
+.project-item.incompleto {
+    border-left: 4px solid #FF9800; 
+}
+.project-item.ideia {
+    border-left: 4px solid #9C27B0; 
+}
+
+/* Na tabela de admin */
+.event-management-table .completo-row {
+    background-color: #e8f5e8; 
+}
+.event-management-table .incompleto-row {
+    background-color: #fff3e0; 
+}
+.event-management-table .ideia-row {
+    background-color: #f3e5f5; 
+}
+
+/* Campo de categoria */
+.category-select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: white;
+}
+

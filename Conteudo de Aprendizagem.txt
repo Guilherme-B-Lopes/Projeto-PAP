@@ -1,0 +1,16 @@
+Conteudo de Aprendizagem
+
+https://github.com/Universidade-Livre/ciencia-da-computacao?tab=readme-ov-file
+
+https://roadmap.sh/
+
+https://exercism.org/
+
+https://css-tricks.com/guides/
+
+https://devdocs.io/css/display-inside
+
+https://animejs.com/documentation
+
+https://leetcode.com/
+

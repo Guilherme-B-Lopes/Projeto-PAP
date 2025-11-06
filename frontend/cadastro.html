@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-Pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CURSOS PROFICIONAIS AEB</title>
+    <link rel="stylesheet" href="style/style.css">
+    <style>
+        /* Estilos adicionais para o cadastro (deu perguica de colacar em pastas separadas)*/
+        .cadastro-section {
+            padding: 100px 0 60px; 
+            text-align: center;
+            background: #f9f9f9;
+            min-height: calc(100vh - 150px); /*linha de merda*/
+        }
+        
+        .cadastro-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: 0.5s;
+        }
+        .cadastro-form:hover{
+
+            box-shadow: 5px 5px 36px #2f4d8f;
+
+        }
+        .cadastro-form h2 {
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box; 
+        }
+        .form-group textarea {
+            height: 120px;
+            resize: vertical; 
+        }
+        .btn-submit {
+            background: #E5E5E5;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 1rem;
+        }
+        .btn-submit:hover {
+            background: #FCA311;
+        }
+        .btn-back {
+            background: #E5E5E5;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+            transition: background 0.3s;
+        }
+        .btn-back:hover {
+            background: #000000;
+        }
+        .form-group input, textarea, select{
+            transition: 0.5s;
+        }
+        .form-group input:hover, textarea:hover, select:hover{
+            box-shadow: 0px 0px 10px #2f4d8f;
+
+        }
+
+        /* Para a porcaria da responsividade*/
+        @media (max-width: 768px) {
+            .cadastro-form {
+                margin: 0 10px;
+                padding: 1.5rem;
+            }
+            .cadastro-section {
+                padding-top: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu -->
+    <nav>
+        <ul>
+            <li><a href="index.html#home">Início</a></li>
+            <li><a href="index.html#produtos">Projetos</a></li>
+            <li><a href="index.html#sobre">Sobre</a></li>
+            <li><a href="index.html#contato">Contato</a></li>
+            <li><a href="cadastro.html">Criar.Proj</a></li>
+            <li><a href="admin.html">Admin</a></li>
+            <li><a href="calendario.html">Calendário</a></li> 
+        </ul>
+    </nav>
+
+    <!-- Seção de Cadastro -->
+<section class="cadastro-section">
+    <div class="container">
+        <div class="cadastro-form">
+            <h2>Cadastrar Novo Projeto</h2> 
+            <form id="projectForm"> 
+                <div class="form-group">
+                    <label for="projectName">Nome do Projeto:</label> 
+                    <input type="text" id="projectName" name="projectName" required placeholder="Ex: Projeto Exemplo">
+                </div>
+                <div class="form-group">
+                    <label for="projectTurma">Turma:</label> 
+                    <input type="text" id="projectTurma" name="projectTurma" required placeholder="Ex: Turma A">
+                </div>
+                <div class="form-group">
+                    <label for="projectCategory">Categoria:</label> 
+                    <select id="projectCategory" name="projectCategory" class="category-select" required>
+                        <option value="">Selecione uma categoria</option>
+                        <option value="completo">Completo</option>
+                        <option value="incompleto">Incompleto</option>
+                        <option value="ideia">Ideia</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="projectDescription">Descrição:</label>
+                    <textarea id="projectDescription" name="projectDescription" required placeholder="Descreva o projeto em detalhes..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="projectImages">URLs das Imagens (uma por linha):</label>
+                    <textarea id="projectImages" name="projectImages" required placeholder="Cole 1 URL por linha"></textarea>
+                    <small>Pode adicionar várias imagens. A primeira será a capa.</small>
+                </div>
+                <div class="form-group">
+                    <label for="projectVideo">URL do Vídeo (opcional):</label>
+                    <input type="url" id="projectVideo" name="projectVideo" placeholder="Ex: https://www.youtube.com/watch?v=... ou arquivo .mp4">
+                </div>
+                <button type="submit" class="btn-submit">Cadastrar Projeto</button> 
+            </form>
+            <a href="index.html" class="btn-back">Voltar ao Início</a>
+        </div>
+    </div>
+</section>
+
+
+    <!-- Rodapé -->
+    <footer id="contato">
+        <div class="container">
+            <h3>Contato</h3>
+            <p>Email: contato@exemplo.com</p>
+            <p>Telefone: (11) 1234-5678</p>
+            <p>Endereço: Rua Exemplo, 123 - Portalegre, Portugal</p>
+            <p>&copy; Cursos Proficionais. Agrupamento de Escolas do Bonfim</p>
+        </div>
+    </footer>
+
+    <script src="js/cadastroProj.js"></script>
+    
+</body>
+</html>

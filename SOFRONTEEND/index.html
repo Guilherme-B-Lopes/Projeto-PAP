@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-Pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CURSOS PROFICIONAIS AEB</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Menu -->
+    <nav>
+        <ul>
+            <li><a href="index.html#home">Início</a></li>
+            <li><a href="index.html#produtos">Projetos</a></li>
+            <li><a href="index.html#sobre">Sobre</a></li>
+            <li><a href="index.html#contato">Contato</a></li>
+            <li><a href="cadastro.html">Cadastro</a></li>
+            <li><a href="admin.html">Admin</a></li>
+            <li><a href="calendario.html">Calendário</a></li> 
+        </ul>
+    </nav>
+
+
+    <!-- Imagens com Slideshow -->
+    <section class="hero" id="home">
+        <div class="slideshow">
+            <div class="slide active">
+                <img src="https://via.placeholder.com/1200x500/4CAF50/FFFFFF?text=Imagem+1+-+Bem-vindo!" alt="Slide 1">
+            </div>
+            <div class="slide">
+                <img src="https://via.placeholder.com/1200x500/2196F3/FFFFFF?text=Imagem+2+-+Nossos+Produtos" alt="Slide 2">
+            </div>
+            <div class="slide">
+                <img src="https://via.placeholder.com/1200x500/FF9800/FFFFFF?text=Imagem+3+-+Ofertas+Especiais" alt="Slide 3">
+            </div>
+        </div>
+    </section>
+
+    <!-- Introducao -->
+    <section class="main-content">
+        <div class="container">
+            <h1 class="ini">Bem-vindo </h1>
+            <p>Este é um site de exemplo estruturado e pronto para uso. Aqui você encontra produtos de qualidade com entrega rápida. Explore nossa seleção e encontre o que precisa para o seu dia a dia. Estamos comprometidos em oferecer a melhor experiência de compra online.</p>
+            <p>Texto de exemplo adicional: Nossa equipe trabalha diariamente para trazer inovações e produtos exclusivos. Visite-nos e descubra mais!</p>
+        </div>
+    </section>
+
+    <!-- Seção de Projetos (antigo Produtos) -->
+<section class="products" id="produtos">
+    <div class="container">
+        <h2>Nossos Projetos</h2> 
+        <div class="project-grid"> 
+            <!-- Projetos  -->
+        </div>
+    </div>
+</section>
+<!-- Modal para Detalhes do Projeto -->
+<div id="projectModal" class="modal"> 
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="modal-header">
+            <h2 id="modalTitle"></h2>
+        </div>
+        <div class="modal-body">
+            <img id="modalImage" src="" alt="">
+            <p id="modalTurma" class="turma"></p> 
+            <p id="modalCategory" class="category"></p> 
+            <p id="modalDescription" class="description"></p>
+        </div>
+    </div>
+</div>
+
+    <!-- Rodapé -->
+    <footer id="contato">
+        <div class="container">
+            <h3>Contato</h3>
+            <p>Email: contato@exemplo.com</p>
+            <p>Telefone: (11) 1234-5678</p>
+            <p>Endereço: Rua Exemplo, 123 - Portalegre, Portugal</p>
+            <p>&copy; Cursos Proficionais. Agrupamento de Escolas do Bonfim</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="BdProjetos.js"></script>
+    <script src="animatio.js"></script>
+</body>
+</html>
