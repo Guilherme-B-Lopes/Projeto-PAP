@@ -27,9 +27,12 @@ nav {
     transition: opacity 0.3s ease;
     z-index: 1000;
     padding: 1rem 0;
+    
 }
-nav:hover {
+nav:hover, 
+nav:focus-within {
     opacity: 1;
+    pointer-events: auto;
 }
 nav ul {
     list-style: none;
@@ -44,6 +47,8 @@ nav ul li a {
     text-decoration: none;
     font-weight: bold;
     transition: color 0.3s;
+    padding: 0.5rem 0.75rem;
+    display: inline-block;
 }
 nav ul li a:hover {
     color: #FCA311;

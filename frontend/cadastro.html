@@ -52,6 +52,10 @@
             font-size: 1rem;
             box-sizing: border-box; 
         }
+        /*tira o contorno pretot*/
+        input, textarea, select{
+            outline: none;
+        }
         .form-group textarea {
             height: 120px;
             resize: vertical; 
@@ -122,7 +126,7 @@
 <section class="cadastro-section">
     <div class="container">
         <div class="cadastro-form">
-            <h2>Cadastrar Novo Projeto</h2> 
+            <h2>Criar Novo Projeto</h2> 
             <form id="projectForm"> 
                 <div class="form-group">
                     <label for="projectName">Nome do Projeto:</label> 
