@@ -20,8 +20,6 @@ if (totalSlides > 0) {
     setInterval(nextSlide, 3000);
     showSlide(currentSlide);
 }
-
-
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.querySelector('.container .ini');
     if (!container) return;

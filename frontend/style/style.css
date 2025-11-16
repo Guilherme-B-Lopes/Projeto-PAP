@@ -20,14 +20,21 @@ body {
 nav {
     position: fixed;
     top: 0;
-    left: 0;
-    width: 100%;
-    background: #000000; 
+    left: 50%;
+    transform: translate(-50%);
+    width: 60%;
+    background-color: #020202; 
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 1s ease;
     z-index: 1000;
-    padding: 1rem 0;
+    padding: 10px 0;
+    margin-top: 10px;
+    border-radius: 5px;
+    width: auto;
     
+    font-size: 20px;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
 }
 nav:hover, 
 nav:focus-within {
@@ -38,6 +45,7 @@ nav ul {
     list-style: none;
     display: flex;
     justify-content: center;
+    align-items: center;
 }
 nav ul li {
     margin: 0 2rem;
@@ -54,10 +62,76 @@ nav ul li a:hover {
     color: #FCA311;
 }
 
-/* Seção Hero com Slideshow */
+/* --- Nav responsive: hamburger --- */
+nav .hamburger {
+    display: none;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 1101;
+    padding: 6px;
+    
+}
+nav .hamburger .bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: #fff;
+    margin: 4px auto;
+    transition: transform 0.3s, opacity 0.3s;
+    border-radius: 2px;
+}
+nav.open .hamburger .bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+nav.open .hamburger .bar:nth-child(2) { opacity: 0; }
+nav.open .hamburger .bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+@media (max-width: 768px) {
+    nav {
+        left: 0;
+        transform: none;
+        width: 100%;
+        border-radius: 0;
+        padding: 0.5rem 1rem;
+        margin-top: 0;
+        opacity: 1; /* mostrar sempre no mobile */
+        pointer-events: auto;
+    }
+    nav ul {
+        display: none; /* escondido por padrão */
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: stretch;
+        padding-top: 0.5rem;
+    }
+    nav.open ul {
+        display: flex; /* mostra quando .open */
+    }
+    nav ul li {
+        margin: 0.25rem 0;
+    }
+    nav ul li a {
+        display: block;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+    }
+
+    /* mostrar o botão hamburger em mobile */
+    nav .hamburger {
+        display: block;
+    }
+    
+}
+
+/* Seção  Slideshow */
 .hero {
     position: relative;
-    height: 500px; /* Limite de altura */
+    height: 800px; /* Limite de altura */
     overflow: hidden;
     width: 100%;
 }
