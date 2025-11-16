@@ -2,19 +2,18 @@
 const API_URL = 'http://localhost:3000/api';
 let projects = []; // Array de projetos carregado do backend
 
-//  elementos de modal (projetos)
-const modal = document.getElementById('projectModal');
-const modalTitle = document.getElementById('modalTitle');
-const modalTurma = document.getElementById('modalTurma');
-const modalCategory = document.getElementById('modalCategory');
-const modalDescription = document.getElementById('modalDescription');
-const modalImage = document.getElementById('modalImage');
-// elementos novos para galeria/vídeo (serão criados dinamicamente)
-const closeBtn = document.querySelector('#projectModal .close');
+//  elementos de modal (projetos) - serão inicializados no DOMContentLoaded
+let modal, modalTitle, modalTurma, modalCategory, modalDescription, modalImage, closeBtn;
 
 function openModalByIndex(index) {
     const project = projects[index];
     if (!project) return;
+
+    // Verificar se os elementos do modal existem
+    if (!modal || !modalTitle || !modalTurma || !modalCategory || !modalDescription) {
+        console.error('Elementos do modal não encontrados');
+        return;
+    }
 
     modalTitle.textContent = project.name;
     modalTurma.textContent = `Turma: ${project.turma}`;
@@ -24,7 +23,11 @@ function openModalByIndex(index) {
     // Render galeria de imagens e vídeo dentro do modal
     const modalBody = document.querySelector('#projectModal .modal-body');
     if (modalBody) {
-        modalBody.innerHTML = '';
+        // Limpar apenas a galeria e vídeo, mantendo os elementos de texto
+        const existingGallery = modalBody.querySelector('.modal-gallery');
+        const existingVideo = modalBody.querySelector('.modal-video');
+        if (existingGallery) existingGallery.remove();
+        if (existingVideo) existingVideo.remove();
 
         // Galeria simples: se houver várias imagens, mostrar todas; caso contrário, capa
         const images = Array.isArray(project.images) ? project.images : (project.image ? [project.image] : []);
@@ -74,31 +77,51 @@ function openModalByIndex(index) {
 
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
+    // Adicionar classe para animação
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
 }
 
 function closeModal() {
-    modal.style.display = 'none';
-    document.body.style.overflow = '';
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }, 300);
+    }
 }
 
 // --- Funções para carregar os projetos ---
 async function fetchProjects() {
     try {
+        console.log('Carregando projetos...');
         const response = await fetch(`${API_URL}/projects`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         projects = await response.json();
+        console.log('Projetos carregados:', projects);
         renderProjects(); // Renderiza os projetos no grid
     } catch (error) {
         console.error('Erro ao carregar projetos:', error);
-        
+        // Mostrar mensagem de erro no grid
+        const projectGrid = document.querySelector('.project-grid');
+        if (projectGrid) {
+            projectGrid.innerHTML = '<p style="text-align: center; grid-column: 1 / -1; color: red;">Erro ao carregar projetos. Verifique se o servidor está rodando.</p>';
+        }
     }
 }
 
 function renderProjects() {
     const projectGrid = document.querySelector('.project-grid');
-    if (!projectGrid) return;
+    if (!projectGrid) {
+        console.error('Grid de projetos não encontrado no DOM');
+        return;
+    }
+    
+    console.log('Renderizando projetos:', projects);
     projectGrid.innerHTML = ''; // Limpa o grid existente
 
     if (projects.length === 0) {
@@ -110,10 +133,20 @@ function renderProjects() {
         const projectItem = document.createElement('div');
         projectItem.classList.add('project-item', project.category || '');
         projectItem.setAttribute('data-index', index);
-        const thumbSrc = Array.isArray(project.images) && project.images.length ? project.images[0] : (project.image || '');
+        
+        // Melhorar a lógica para obter a imagem
+        let thumbSrc = '';
+        if (Array.isArray(project.images) && project.images.length > 0) {
+            thumbSrc = project.images[0];
+        } else if (project.image) {
+            thumbSrc = project.image;
+        } else {
+            thumbSrc = 'https://via.placeholder.com/300x200/cccccc/666666?text=Sem+Imagem';
+        }
+        
         projectItem.innerHTML = `
             <div class="project-thumb">
-                <img src="${thumbSrc}" alt="${project.name}">
+                <img src="${thumbSrc}" alt="${project.name}" onerror="this.src='https://via.placeholder.com/300x200/cccccc/666666?text=Erro+na+Imagem'">
                 <span class="badge">${project.category || ''}</span>
             </div>
             <div class="project-info">
@@ -124,14 +157,33 @@ function renderProjects() {
         projectGrid.appendChild(projectItem);
 
         projectItem.addEventListener('click', () => {
+            console.log('Clicou no projeto:', project.name, 'índice:', index);
             openModalByIndex(index);
         });
     });
+    
+    console.log('Projetos renderizados com sucesso');
 }
 
 // --- Inicialização ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar elementos do DOM
+    modal = document.getElementById('projectModal');
+    modalTitle = document.getElementById('modalTitle');
+    modalTurma = document.getElementById('modalTurma');
+    modalCategory = document.getElementById('modalCategory');
+    modalDescription = document.getElementById('modalDescription');
+    modalImage = document.getElementById('modalImage');
+    closeBtn = document.querySelector('#projectModal .close');
+    
+    // Verificar se os elementos existem
+    if (!modal) {
+        console.error('Modal não encontrado no DOM');
+        return;
+    }
+    
     fetchProjects(); // Carrega os projetos do backend
+    
     // Fechar modal via X
     if (closeBtn) {
         closeBtn.addEventListener('click', closeModal);
