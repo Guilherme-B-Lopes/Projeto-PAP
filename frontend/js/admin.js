@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td data-label="Descrição">${project.description}</td>
                 <td data-label="Ações" class="actions">
                     <button class="edit-btn" data-id="${project._id}">Editar</button>
-                    <button class="delete-btn" data-id="${project._id}">Excluir</button>
+                    <button class="delete-btn" data-id="${project._id}">Eliminar</button>
                 </td>
             `;
         });
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td data-label="Hora">${event.time}</td>
                 <td data-label="Ações" class="actions">
                     <button class="edit-btn" data-id="${event._id}">Editar</button>
-                    <button class="delete-btn" data-id="${event._id}">Excluir</button>
+                    <button class="delete-btn" data-id="${event._id}">Elminar</button>
                 </td>
             `;
         });

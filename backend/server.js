@@ -3,10 +3,72 @@ require('dotenv').config(); // Carrega variáveis de ambiente do .env
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const multer = require('multer');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000; // Porta do servidor, ou 3000 por padrão
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/test'; // URI do MongoDB
+
+// Criar diretórios de upload se não existirem
+const uploadDirs = {
+    images: path.join(__dirname, '../uploads/images'),
+    videos: path.join(__dirname, '../uploads/videos')
+};
+
+Object.values(uploadDirs).forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+});
+
+// Configurar Multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        if (file.fieldname === 'imageFiles') {
+            cb(null, uploadDirs.images);
+        } else if (file.fieldname === 'videoFile') {
+            cb(null, uploadDirs.videos);
+        } else {
+            cb(null, uploadDirs.images);
+        }
+    },
+    filename: (req, file, cb) => {
+        // Gerar nome único para o arquivo
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    // Validar tipos de arquivo
+    const allowedImageMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    const allowedVideoMimes = ['video/mp4', 'video/avi', 'video/quicktime', 'video/x-msvideo', 'video/webm'];
+    
+    if (file.fieldname === 'imageFiles') {
+        if (allowedImageMimes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Tipo de imagem não permitido. Use: JPG, PNG, GIF, WebP, SVG'));
+        }
+    } else if (file.fieldname === 'videoFile') {
+        if (allowedVideoMimes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Tipo de vídeo não permitido. Use: MP4, AVI, MOV, WebM'));
+        }
+    } else {
+        cb(null, true);
+    }
+};
+
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 500 * 1024 * 1024 // 500 MB por arquivo
+    }
+});
 
 // 1. Conexão com o MongoDB
 mongoose.connect(MONGODB_URI)
@@ -16,17 +78,22 @@ mongoose.connect(MONGODB_URI)
 // 2. Middlewares
 app.use(cors()); // Permite requisições de diferentes origens (seu frontend)
 app.use(express.json()); // Habilita o Express a ler JSON no corpo das requisições
+app.use(express.urlencoded({ limit: '500mb', extended: true })); // Para formulários urlencoded
+
+// Servir arquivos estáticos de uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // 3. Definição dos Schemas e Modelos (Mongoose)
 // ... (código anterior: require, mongoose.connect, middlewares, etc.)
 
-// Schema para Projetos (antigo Product)
+// Schema para Projetos 
 const projectSchema = new mongoose.Schema({
     name: { type: String, required: true },
     turma: { type: String, required: true }, // Antigo 'price', agora 'turma'
     description: { type: String, required: true },
     // Suporte a múltiplas imagens; manter compat com campo único antigo via transformação no POST
     images: { type: [String], default: [], validate: arr => Array.isArray(arr) },
+    image: { type: String, default: null }, // Capa do projeto (primeira imagem)
     // URL opcional de vídeo (YouTube/Vimeo ou arquivo)
     videoUrl: { type: String, default: null },
     category: { 
@@ -52,21 +119,51 @@ app.get('/api/projects', async (req, res) => {
 });
 
 // POST um novo projeto
-app.post('/api/projects', async (req, res) => {
-    // Compat: aceitar tanto image (string) quanto images (array)
-    const inputImages = Array.isArray(req.body.images)
-        ? req.body.images
-        : (req.body.image ? [req.body.image] : []);
-
-    const project = new Project({
-        name: req.body.name,
-        turma: req.body.turma, // Novo campo
-        description: req.body.description,
-        images: inputImages,
-        videoUrl: req.body.videoUrl || null,
-        category: req.body.category // Novo campo
-    });
+app.post('/api/projects', upload.fields([
+    { name: 'imageFiles', maxCount: 10 },
+    { name: 'videoFile', maxCount: 1 }
+]), async (req, res) => {
     try {
+        // Processar imagens
+        const images = [];
+        
+        // Adicionar URLs de imagens enviadas
+        if (req.body.imageUrls) {
+            const imageUrls = Array.isArray(req.body.imageUrls) 
+                ? req.body.imageUrls 
+                : [req.body.imageUrls];
+            images.push(...imageUrls.filter(url => url && url.trim()));
+        }
+        
+        // Adicionar imagens carregadas
+        if (req.files && req.files.imageFiles) {
+            req.files.imageFiles.forEach(file => {
+                // Retornar caminho relativo para acesso via HTTP
+                images.push(`/uploads/images/${file.filename}`);
+            });
+        }
+        
+        // Validar que tem pelo menos uma imagem
+        if (images.length === 0) {
+            return res.status(400).json({ message: 'Pelo menos uma imagem é obrigatória' });
+        }
+
+        // Processar vídeo
+        let videoUrl = req.body.videoUrl || null;
+        if (req.files && req.files.videoFile && req.files.videoFile[0]) {
+            videoUrl = `/uploads/videos/${req.files.videoFile[0].filename}`;
+        }
+
+        const project = new Project({
+            name: req.body.name,
+            turma: req.body.turma,
+            description: req.body.description,
+            images: images,
+            image: images[0], // Primeira imagem como capa (compatibilidade)
+            videoUrl: videoUrl,
+            category: req.body.category
+        });
+
         const newProject = await project.save();
         res.status(201).json(newProject);
     } catch (err) {

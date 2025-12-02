@@ -8,33 +8,81 @@ document.getElementById('projectForm').addEventListener('submit', async function
     const turma = document.getElementById('projectTurma').value; 
     const category = document.getElementById('projectCategory').value; 
     const description = document.getElementById('projectDescription').value;
-    const imagesText = document.getElementById('projectImages').value;
-    const videoUrl = document.getElementById('projectVideo').value;
 
-    if (!name || !turma || !category || !description || !imagesText) {
+    if (!name || !turma || !category || !description) {
         alert('Por favor, preencha todos os campos obrigatórios!');
         return;
     }
 
-    const images = imagesText
-        .split(/\r?\n/)
-        .map(s => s.trim())
-        .filter(Boolean);
+    // Processar imagens (arquivos + URLs)
+    const imageFilesInput = document.getElementById('projectImages');
+    const imageUrlsText = document.getElementById('projectImageUrls').value;
+    
+    const images = [];
 
+    // Adicionar URLs de imagens
+    if (imageUrlsText.trim()) {
+        const urls = imageUrlsText
+            .split(/\r?\n/)
+            .map(s => s.trim())
+            .filter(Boolean);
+        images.push(...urls);
+    }
+
+    // Adicionar imagens carregadas
+    if (imageFilesInput.files.length > 0) {
+        for (let file of imageFilesInput.files) {
+            images.push(file);
+        }
+    }
+
+    // Validar imagens
     if (images.length === 0) {
-        alert('Adicione pelo menos uma URL de imagem válida.');
+        alert('Por favor, adicione pelo menos uma imagem (arquivo ou URL).');
         return;
     }
 
-    const newProject = { name, turma, category, description, images, image: images[0], videoUrl: videoUrl || null }; // Compat: inclui 'image' como capa
+    // Processar vídeo (arquivo ou URL)
+    const videoFileInput = document.getElementById('projectVideo');
+    const videoUrlInput = document.getElementById('projectVideoUrl').value;
+    
+    let videoData = null;
+    if (videoFileInput.files.length > 0) {
+        videoData = videoFileInput.files[0];
+    } else if (videoUrlInput.trim()) {
+        videoData = videoUrlInput.trim();
+    }
+
+    // Criar FormData para upload
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('turma', turma);
+    formData.append('category', category);
+    formData.append('description', description);
+
+    // Adicionar imagens
+    images.forEach((image, index) => {
+        if (image instanceof File) {
+            formData.append(`imageFiles`, image);
+        } else {
+            formData.append(`imageUrls`, image);
+        }
+    });
+
+    // Adicionar vídeo
+    if (videoData) {
+        if (videoData instanceof File) {
+            formData.append('videoFile', videoData);
+        } else {
+            formData.append('videoUrl', videoData);
+        }
+    }
 
     try {
-        const response = await fetch(`${API_URL}/projects`, { // Mudança: /projects
+        const response = await fetch(`${API_URL}/projects`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(newProject)
+            body: formData
+            // NÃO definir Content-Type: application/json - o navegador vai definir multipart/form-data automaticamente
         });
 
         if (!response.ok) {
@@ -51,8 +99,6 @@ document.getElementById('projectForm').addEventListener('submit', async function
         const addedProject = await response.json();
         alert('Projeto cadastrado com sucesso! ID: ' + addedProject._id);
         document.getElementById('projectForm').reset();
-        // Opcional: redirecionar para a página inicial ou admin
-        // window.location.href = 'index.html#produtos';
     } catch (error) {
         console.error('Erro ao cadastrar projeto:', error);
         alert('Erro ao cadastrar projeto: ' + (error && error.message ? error.message : 'verifique o console.'));

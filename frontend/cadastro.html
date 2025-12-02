@@ -52,6 +52,24 @@
             font-size: 1rem;
             box-sizing: border-box; 
         }
+        /* Estilos para inputs de arquivo */
+        .form-group input[type="file"] {
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+        .form-group input[type="file"]::file-selector-button {
+            background: #2f4d8f;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            transition: background 0.3s;
+        }
+        .form-group input[type="file"]::file-selector-button:hover {
+            background: #FCA311;
+        }
         /*tira o contorno pretot*/
         input, textarea, select{
             outline: none;
@@ -150,13 +168,22 @@
                     <textarea id="projectDescription" name="projectDescription" required placeholder="Descreva o projeto em detalhes..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="projectImages">URLs das Imagens (uma por linha):</label>
-                    <textarea id="projectImages" name="projectImages" required placeholder="Cole 1 URL por linha"></textarea>
-                    <small>Pode adicionar várias imagens. A primeira será a capa.</small>
+                    <label for="projectImages">Imagens do Projeto:</label>
+                    <input type="file" id="projectImages" name="projectImages" accept="image/*" multiple>
+                    <small>Selecione uma ou mais imagens. A primeira será a capa.</small>
                 </div>
                 <div class="form-group">
-                    <label for="projectVideo">URL do Vídeo (opcional):</label>
-                    <input type="url" id="projectVideo" name="projectVideo" placeholder="Ex: https://www.youtube.com/watch?v=... ou arquivo .mp4">
+                    <label for="projectImageUrls">URLs das Imagens (opcional - uma por linha):</label>
+                    <textarea id="projectImageUrls" name="projectImageUrls" placeholder="Cole 1 URL por linha (opcional)"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="projectVideo">Vídeo do Projeto:</label>
+                    <input type="file" id="projectVideo" name="projectVideo" accept="video/*">
+                    <small>Selecione um arquivo de vídeo (mp4, avi, mov, etc) - opcional</small>
+                </div>
+                <div class="form-group">
+                    <label for="projectVideoUrl">URL do Vídeo (opcional):</label>
+                    <input type="url" id="projectVideoUrl" name="projectVideoUrl" placeholder="Ex: https://www.youtube.com/watch?v=...">
                 </div>
                 <button type="submit" class="btn-submit">Cadastrar Projeto</button> 
             </form>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Projetos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .project-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #e0e0e0;
+        }
+
+        .project-content {
+            padding: 15px;
+        }
+
+        .project-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2f4d8f;
+        }
+
+        .project-category {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .category-completo {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .category-incompleto {
+            background: #FFC107;
+            color: white;
+        }
+
+        .category-ideia {
+            background: #2196F3;
+            color: white;
+        }
+
+        .project-turma {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .project-description {
+            font-size: 0.9em;
+            color: #555;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            max-height: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .project-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .project-video {
+            margin-bottom: 10px;
+        }
+
+        .project-video video {
+            width: 100%;
+            max-height: 150px;
+            border-radius: 5px;
+        }
+
+        .project-video a {
+            display: inline-block;
+            background: #2f4d8f;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.85em;
+            transition: background 0.3s;
+        }
+
+        .project-video a:hover {
+            background: #FCA311;
+        }
+
+        .loading, .error {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+        }
+
+        .error {
+            color: #d32f2f;
+        }
+
+        .loading {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Projetos Carregados</h1>
+        <div id="projects-container" class="projects-grid">
+            <div class="loading">Carregando projetos...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        // Carregar e exibir projetos
+        async function loadProjects() {
+            try {
+                const response = await fetch(`${API_URL}/projects`);
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar projetos');
+                }
+
+                const projects = await response.json();
+                displayProjects(projects);
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('projects-container').innerHTML = 
+                    `<div class="error">❌ Erro ao carregar projetos: ${error.message}</div>`;
+            }
+        }
+
+        function displayProjects(projects) {
+            const container = document.getElementById('projects-container');
+            
+            if (projects.length === 0) {
+                container.innerHTML = '<div class="error">Nenhum projeto cadastrado ainda.</div>';
+                return;
+            }
+
+            container.innerHTML = projects.map(project => `
+                <div class="project-card">
+                    ${project.image ? `<img src="${project.image}" alt="${project.name}" class="project-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22%3E%3Crect fill=%22%23e0e0e0%22 width=%22300%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3ESem imagem%3C/text%3E%3C/svg%3E'">` : '<img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22%3E%3Crect fill=%22%23e0e0e0%22 width=%22300%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3ESem imagem%3C/text%3E%3C/svg%3E" class="project-image">'}
+                    
+                    <div class="project-content">
+                        <div class="project-title">${project.name}</div>
+                        <span class="project-category category-${project.category}">${project.category.toUpperCase()}</span>
+                        <div class="project-turma">👥 Turma: ${project.turma}</div>
+                        <div class="project-description">${project.description}</div>
+                        
+                        ${project.images && project.images.length > 1 ? `
+                            <div class="project-gallery">
+                                ${project.images.slice(0, 3).map(img => `
+                                    <img src="${img}" alt="Galeria" class="gallery-image" onerror="this.style.display='none'">
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${project.videoUrl ? `
+                            <div class="project-video">
+                                ${project.videoUrl.includes('youtu') ? `
+                                    <a href="${project.videoUrl}" target="_blank">🎥 Ver Vídeo</a>
+                                ` : `
+                                    <video controls>
+                                        <source src="${project.videoUrl}" type="video/mp4">
+                                        Seu navegador não suporta vídeos.
+                                    </video>
+                                `}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Carregador ao abrir
+        loadProjects();
+
+        // Recarregar a cada 10 segundos (opcional)
+        // setInterval(loadProjects, 10000);
+    </script>
+</body>
+</html>
