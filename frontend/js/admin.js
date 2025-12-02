@@ -1,6 +1,18 @@
 // admin.js
 document.addEventListener('DOMContentLoaded', () => {
     const API_URL = 'http://localhost:3000/api';
+    
+    // Função auxiliar para fazer requisições autenticadas
+    function fetchWithAuth(url, options = {}) {
+        const headers = auth.getAuthHeaders();
+        return fetch(url, {
+            ...options,
+            headers: {
+                ...headers,
+                ...options.headers
+            }
+        });
+    }
 
     // --- Lógica de Gerenciamento de Projetos ---
     const adminProjectList = document.getElementById('adminProjectList');
@@ -117,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const updatedProjectData = { name, turma, category, description, image };
 
         try {
-            const response = await fetch(`${API_URL}/projects/${projectId}`, {
+            const response = await fetchWithAuth(`${API_URL}/projects/${projectId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -146,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (confirm(`Tem certeza que deseja excluir o projeto "${project.name}"?`)) {
             try {
-                const response = await fetch(`${API_URL}/projects/${projectId}`, {
+                const response = await fetchWithAuth(`${API_URL}/projects/${projectId}`, {
                     method: 'DELETE'
                 });
 
@@ -258,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             let response;
             if (id) { // Editando evento existente
-                response = await fetch(`${API_URL}/events/${id}`, {
+                response = await fetchWithAuth(`${API_URL}/events/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(eventData)
@@ -266,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 alert('Evento atualizado com sucesso!');
             } else { // Adicionando novo evento
-                response = await fetch(`${API_URL}/events`, {
+                response = await fetchWithAuth(`${API_URL}/events`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(eventData)
@@ -311,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function deleteEvent(id) {
         if (confirm('Tem certeza que deseja excluir este evento?')) {
             try {
-                const response = await fetch(`${API_URL}/events/${id}`, {
+                const response = await fetchWithAuth(`${API_URL}/events/${id}`, {
                     method: 'DELETE'
                 });
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);

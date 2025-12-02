@@ -1,6 +1,11 @@
 // cadastroProjeto.js
 const API_URL = 'http://localhost:3000/api';
 
+// Verificar autenticação antes de permitir cadastro
+if (typeof requireAuth === 'function') {
+    requireAuth();
+}
+
 document.getElementById('projectForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
@@ -79,8 +84,14 @@ document.getElementById('projectForm').addEventListener('submit', async function
     }
 
     try {
+        // Obter headers de autenticação
+        const headers = auth.getAuthHeaders();
+        // Remover Content-Type para permitir que o navegador defina multipart/form-data
+        delete headers['Content-Type'];
+        
         const response = await fetch(`${API_URL}/projects`, {
             method: 'POST',
+            headers: headers,
             body: formData
             // NÃO definir Content-Type: application/json - o navegador vai definir multipart/form-data automaticamente
         });

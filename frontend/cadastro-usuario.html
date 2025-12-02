@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CURSOS PROFICIONAIS AEB</title>
+    <title>Cadastro de Usuário - CURSOS PROFICIONAIS AEB</title>
     <link rel="stylesheet" href="style/style.css">
     <style>
-        /* Estilos adicionais para o cadastro (deu perguica de colacar em pastas separadas)*/
+        /* Estilos adicionais para o cadastro de usuário */
         nav{
             pointer-events: none;
         }
-        .login-section {
+        .cadastro-section {
             padding: 100px 0 60px; 
             text-align: center;
             background: #f9f9f9;
-            min-height: calc(100vh - 150px); /*linha de merda*/
+            min-height: calc(100vh - 150px);
         }
         
-        .login-form {
+        .cadastro-form {
             max-width: 600px;
             margin: 0 auto;
             background: white;
@@ -26,12 +26,10 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: 0.5s;
         }
-        .login-form:hover{
-
+        .cadastro-form:hover{
             box-shadow: 5px 5px 36px #2f4d8f;
-
         }
-        .login-form h2 {
+        .cadastro-form h2 {
             margin-bottom: 1.5rem;
             font-size: 2rem;
             color: #333;
@@ -46,8 +44,7 @@
             font-weight: bold;
             color: #555;
         }
-        .form-group input,
-        .form-group textarea {
+        .form-group input {
             width: 100%;
             padding: 0.8rem;
             border: 1px solid #ddd;
@@ -55,13 +52,8 @@
             font-size: 1rem;
             box-sizing: border-box; 
         }
-        /*tira o contorno preto ao clicar nos input*/
         input{
             outline: none;
-        }
-        .form-group textarea {
-            height: 120px;
-            resize: vertical; 
         }
         .btn-submit {
             background: #E5E5E5;
@@ -73,9 +65,14 @@
             cursor: pointer;
             transition: background 0.3s;
             margin-top: 1rem;
+            width: 100%;
         }
         .btn-submit:hover {
             background: #FCA311;
+        }
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
         .btn-back {
             background: #E5E5E5;
@@ -91,21 +88,31 @@
         .btn-back:hover {
             background: #000000;
         }
-        .form-group input, textarea, select{
+        .form-group input{
             transition: 0.5s;
         }
-        .form-group input:hover, textarea:hover, select:hover{
+        .form-group input:hover{
             box-shadow: 0px 0px 10px #2f4d8f;
-
+        }
+        .login-link {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .login-link a {
+            color: #2f4d8f;
+            text-decoration: none;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
         }
 
-        /* Para a porcaria da responsividade*/
+        /* Para a responsividade*/
         @media (max-width: 768px) {
-            .login-form {
+            .cadastro-form {
                 margin: 0 10px;
                 padding: 1.5rem;
             }
-            .login-section {
+            .cadastro-section {
                 padding-top: 80px;
             }
         }
@@ -125,30 +132,37 @@
         </ul>
     </nav>
 
-    <!-- Seção de Login -->
-<section class="login-section">
-    <div class="container">
-        <div class="login-form">
-            <h2>Login</h2> 
-            <form id="loginForm"> 
-                <div class="form-group">
-                    <label for="username">Nome de Usuário ou Email:</label> 
-                    <input type="text" id="username" name="username" required placeholder="Digite seu username ou email">
+    <!-- Seção de Cadastro de Usuário -->
+    <section class="cadastro-section">
+        <div class="container">
+            <div class="cadastro-form">
+                <h2>Cadastro de Usuário</h2> 
+                <form id="registerForm"> 
+                    <div class="form-group">
+                        <label for="username">Nome de Usuário:</label> 
+                        <input type="text" id="username" name="username" required placeholder="Ex: joao123">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label> 
+                        <input type="email" id="email" name="email" required placeholder="Ex: joao@exemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Senha:</label> 
+                        <input type="password" id="password" name="password" required placeholder="Mínimo 6 caracteres" minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmar Senha:</label> 
+                        <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Digite a senha novamente" minlength="6">
+                    </div>
+                    <button type="submit" class="btn-submit" id="submitBtn">Cadastrar</button> 
+                </form>
+                <div class="login-link">
+                    <p>Já tem uma conta? <a href="login.html">Faça login aqui</a></p>
                 </div>
-                <div class="form-group">
-                    <label for="password">Senha:</label> 
-                    <input type="password" id="password" name="password" required placeholder="Digite sua senha">
-                </div>
-                <button type="submit" class="btn-submit" id="submitBtn">Login</button> 
-            </form>
-            <div style="margin-top: 1rem; text-align: center;">
-                <p>Não tem uma conta? <a href="cadastro-usuario.html" style="color: #2f4d8f; text-decoration: none;">Cadastre-se aqui</a></p>
+                <a href="index.html" class="btn-back">Voltar ao Início</a>
             </div>
-            <a href="index.html" class="btn-back">Cancelar</a>
         </div>
-    </div>
-</section>
-
+    </section>
 
     <!-- Rodapé -->
     <footer id="contato">
@@ -163,36 +177,34 @@
 
     <script src="js/auth.js"></script>
     <script>
-        // Verificar se já está logado
-        if (auth.isAuthenticated()) {
-            const user = auth.getUser();
-            if (user && user.role === 'admin') {
-                window.location.href = 'admin.html';
-            } else {
-                window.location.href = 'index.html';
-            }
-        }
-
-        // Manipular formulário de login
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        // Manipular formulário de cadastro
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const submitBtn = document.getElementById('submitBtn');
             const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
 
-            if (!username || !password) {
-                showMessage('Por favor, preencha todos os campos!', 'error');
+            // Validações
+            if (password !== confirmPassword) {
+                showMessage('As senhas não coincidem!', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('A senha deve ter pelo menos 6 caracteres!', 'error');
                 return;
             }
 
             // Desabilitar botão durante o envio
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Entrando...';
+            submitBtn.textContent = 'Cadastrando...';
 
             try {
-                const result = await loginUser(username, password);
-                showMessage('Login realizado com sucesso! Redirecionando...', 'success');
+                const result = await registerUser(username, email, password);
+                showMessage('Cadastro realizado com sucesso! Redirecionando...', 'success');
                 
                 // Redirecionar após 1 segundo
                 setTimeout(() => {
@@ -203,11 +215,12 @@
                     }
                 }, 1000);
             } catch (error) {
-                showMessage(error.message || 'Erro ao fazer login. Verifique suas credenciais.', 'error');
+                showMessage(error.message || 'Erro ao cadastrar usuário. Tente novamente.', 'error');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Login';
+                submitBtn.textContent = 'Cadastrar';
             }
         });
     </script>
 </body>
 </html>
+
