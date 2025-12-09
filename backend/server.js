@@ -158,7 +158,7 @@ const Project = mongoose.model('Project', projectSchema);
 
 // ... (schema de Event permanece igual)
 
-// Rotas da API para Projetos (antigo Products)
+// Rotas da API para Projetos 
 
 // GET todos os projetos
 app.get('/api/projects', async (req, res) => {
@@ -333,30 +333,137 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
     }
 });
 
+// GET /api/users - Listar todos os usuários (apenas admin)
+app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const users = await User.find().select('-password');
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// GET /api/users/:id - Obter usuário específico (apenas admin)
+app.get('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// PUT /api/users/:id - Editar usuário (apenas admin)
+app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { username, email, role, password } = req.body;
+        const updateData = {};
+        
+        if (username) updateData.username = username;
+        if (email) updateData.email = email;
+        if (role && (role === 'admin' || role === 'user')) updateData.role = role;
+        if (password && password.length >= 6) updateData.password = password;
+        
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            updateData,
+            { new: true }
+        ).select('-password');
+        
+        if (!user) {
+            return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+        
+        res.json({ message: 'Usuário atualizado com sucesso', user });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+// DELETE /api/users/:id - Deletar usuário (apenas admin)
+app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        // Não permitir deletar a si mesmo
+        if (req.user.userId === req.params.id) {
+            return res.status(400).json({ message: 'Você não pode deletar sua própria conta' });
+        }
+        
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+        
+        res.json({ message: 'Usuário deletado com sucesso' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 // POST um novo projeto - Apenas usuários autenticados podem criar projetos
 app.post('/api/projects', authenticateToken, upload.fields([
     { name: 'imageFiles', maxCount: 10 },
     { name: 'videoFile', maxCount: 1 }
 ]), async (req, res) => {
     try {
+        console.log('[POST /api/projects] Recebendo novo projeto...');
+        console.log('[POST /api/projects] Body:', req.body);
+        console.log('[POST /api/projects] Files:', req.files);
+        
+        // Validar campos obrigatórios
+        if (!req.body.name || !req.body.turma || !req.body.category || !req.body.description) {
+            return res.status(400).json({ 
+                message: 'Campos obrigatórios faltando',
+                required: ['name', 'turma', 'category', 'description'],
+                received: Object.keys(req.body)
+            });
+        }
+        
         // Processar imagens
         const images = [];
         
         // Adicionar URLs de imagens enviadas
         if (req.body.imageUrls) {
-            const imageUrls = Array.isArray(req.body.imageUrls) 
-                ? req.body.imageUrls 
-                : [req.body.imageUrls];
-            images.push(...imageUrls.filter(url => url && url.trim()));
+            let imageUrls;
+            // Se for string JSON, fazer parse
+            if (typeof req.body.imageUrls === 'string') {
+                try {
+                    imageUrls = JSON.parse(req.body.imageUrls);
+                    console.log('[POST /api/projects] imageUrls parseado:', imageUrls);
+                } catch (e) {
+                    console.log('[POST /api/projects] imageUrls não é JSON, tratando como string única');
+                    // Se não for JSON válido, tratar como string única
+                    imageUrls = [req.body.imageUrls];
+                }
+            } else {
+                imageUrls = req.body.imageUrls;
+            }
+            
+            // Garantir que é um array
+            if (!Array.isArray(imageUrls)) {
+                imageUrls = [imageUrls];
+            }
+            
+            // Filtrar URLs válidas
+            const validUrls = imageUrls.filter(url => url && url.trim());
+            console.log('[POST /api/projects] URLs de imagens válidas:', validUrls);
+            images.push(...validUrls);
         }
         
         // Adicionar imagens carregadas
         if (req.files && req.files.imageFiles) {
+            console.log('[POST /api/projects] Arquivos de imagem recebidos:', req.files.imageFiles.length);
             req.files.imageFiles.forEach(file => {
                 // Retornar caminho relativo para acesso via HTTP
-                images.push(`/uploads/images/${file.filename}`);
+                const imagePath = `/uploads/images/${file.filename}`;
+                console.log('[POST /api/projects] Adicionando imagem:', imagePath);
+                images.push(imagePath);
             });
         }
+        
+        console.log('[POST /api/projects] Total de imagens processadas:', images.length);
         
         // Validar que tem pelo menos uma imagem
         if (images.length === 0) {
@@ -367,6 +474,7 @@ app.post('/api/projects', authenticateToken, upload.fields([
         let videoUrl = req.body.videoUrl || null;
         if (req.files && req.files.videoFile && req.files.videoFile[0]) {
             videoUrl = `/uploads/videos/${req.files.videoFile[0].filename}`;
+            console.log('[POST /api/projects] Vídeo processado:', videoUrl);
         }
 
         const project = new Project({
@@ -379,9 +487,13 @@ app.post('/api/projects', authenticateToken, upload.fields([
             category: req.body.category
         });
 
+        console.log('[POST /api/projects] Projeto criado:', project);
         const newProject = await project.save();
+        console.log('[POST /api/projects] Projeto salvo com sucesso. ID:', newProject._id);
         res.status(201).json(newProject);
     } catch (err) {
+        console.error('[POST /api/projects] Erro ao salvar projeto:', err);
+        console.error('[POST /api/projects] Stack:', err.stack);
         res.status(400).json({ message: err.message });
     }
 });
@@ -496,14 +608,120 @@ app.post('/api/auth/create-admin', async (req, res) => {
 });
 
 // Servir arquivos estáticos do frontend (usar caminho absoluto)
-app.use(express.static(path.join(__dirname, '../frontend'))); // Garante caminho correto independentemente do diretório de execução
-// ... (suas rotas /api/products e /api/events)
+// IMPORTANTE: Isso deve vir DEPOIS das rotas da API
+const frontendPath = path.join(__dirname, '../frontend');
+app.use(express.static(frontendPath));
+
 // Rota para a página inicial do frontend
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+    res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
+// Redirecionar .htm para .html (compatibilidade) - DEVE VIR ANTES DO MIDDLEWARE DE ERRO
+// Usar expressão regular para capturar arquivos .htm
+app.get(/.*\.htm$/, (req, res) => {
+    // Ignorar se for rota da API
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'Rota da API não encontrada' });
+    }
+    
+    const htmlPath = req.path.replace(/\.htm$/, '.html');
+    const htmlFile = path.join(frontendPath, htmlPath);
+    
+    if (fs.existsSync(htmlFile)) {
+        console.log(`[Redirect] ${req.path} -> ${htmlPath}`);
+        return res.redirect(301, htmlPath);
+    } else {
+        console.log(`[404] Arquivo .htm não encontrado: ${req.path} (tentou: ${htmlPath})`);
+        return res.status(404).json({ 
+            error: 'Arquivo não encontrado',
+            path: req.path,
+            message: `O arquivo ${req.path} não foi encontrado.`,
+            suggestion: `Tente acessar ${htmlPath} se o arquivo existir.`,
+            availableFiles: [
+                'index.html',
+                'projetos.html',
+                'admin.html',
+                'cadastro.html',
+                'login.html',
+                'calendario.html',
+                'cadastro-usuario.html',
+                'test-api.html'
+            ]
+        });
+    }
+});
+
+// Middleware para tratar arquivos não encontrados (deve vir ANTES do catch-all)
+app.use((req, res, next) => {
+    // Ignorar rotas da API
+    if (req.path.startsWith('/api/')) {
+        return next();
+    }
+    
+    // Se for um arquivo com extensão .html, verificar se existe
+    if (req.path.match(/\.html$/)) {
+        const requestedFile = path.join(frontendPath, req.path);
+        if (fs.existsSync(requestedFile)) {
+            return res.sendFile(requestedFile);
+        } else {
+            // Arquivo não encontrado - retornar 404 com mensagem útil
+            console.log(`[404] Arquivo não encontrado: ${req.path}`);
+            return res.status(404).json({ 
+                error: 'Arquivo não encontrado',
+                path: req.path,
+                message: `O arquivo ${req.path} não foi encontrado.`,
+                hint: 'Verifique se o nome do arquivo está correto.',
+                availableFiles: [
+                    'index.html',
+                    'projetos.html',
+                    'admin.html',
+                    'cadastro.html',
+                    'login.html',
+                    'calendario.html',
+                    'cadastro-usuario.html',
+                    'test-api.html'
+                ]
+            });
+        }
+    }
+    
+    // Para outros arquivos estáticos, deixar o express.static tratar
+    next();
+});
+
+// Rota catch-all para SPA: servir index.html para todas as rotas não-API
+// Isso permite que o frontend funcione mesmo com URLs diretas
+// Usar expressão regular para capturar todas as rotas
+app.get(/.*/, (req, res) => {
+    // Ignorar rotas da API (já tratadas acima)
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'Rota da API não encontrada' });
+    }
+    
+    // Ignorar arquivos estáticos (já tratados pelo express.static)
+    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|html|htm|json)$/)) {
+        return res.status(404).json({ 
+            error: 'Arquivo não encontrado',
+            path: req.path
+        });
+    }
+    
+    // Para todas as outras rotas (sem extensão), servir index.html (SPA behavior)
+    const indexPath = path.join(frontendPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(404).json({ 
+            error: 'Página não encontrada',
+            message: 'O arquivo index.html não foi encontrado no frontend.'
+        });
+    }
 });
 
 // 6. Iniciar o servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Frontend servido de: ${frontendPath}`);
+    console.log(`Acesse: http://localhost:${PORT}`);
 });

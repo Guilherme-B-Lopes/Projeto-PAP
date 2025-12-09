@@ -336,6 +336,156 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Lógica de Gerenciamento de Utilizadores ---
+    const adminUserTableBody = document.getElementById('adminUserTableBody');
+    const editUserModal = document.getElementById('editUserModal');
+    const closeEditUserModalButtons = document.querySelectorAll('.close-edit-user-modal');
+    const editUserForm = document.getElementById('editUserForm');
+
+    let users = []; // Array para armazenar os utilizadores
+
+    // Função para carregar utilizadores
+    async function loadUsers() {
+        try {
+            const response = await fetchWithAuth(`${API_URL}/users`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            users = await response.json();
+            renderUsers();
+        } catch (error) {
+            console.error('Erro ao carregar utilizadores:', error);
+            adminUserTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Erro ao carregar utilizadores. Verifique o servidor.</td></tr>';
+        }
+    }
+
+    // Função para renderizar utilizadores na tabela
+    function renderUsers() {
+        adminUserTableBody.innerHTML = '';
+
+        if (users.length === 0) {
+            adminUserTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum utilizador cadastrado.</td></tr>';
+            return;
+        }
+
+        users.forEach((user) => {
+            const row = adminUserTableBody.insertRow();
+            const createdDate = new Date(user.createdAt).toLocaleDateString('pt-PT');
+            const roleBadgeClass = user.role === 'admin' ? 'badge-admin' : 'badge-user';
+            const roleText = user.role === 'admin' ? 'Administrador' : 'Utilizador';
+
+            row.innerHTML = `
+                <td data-label="ID">${user._id}</td>
+                <td data-label="Username">${user.username}</td>
+                <td data-label="Email">${user.email}</td>
+                <td data-label="Role"><span class="${roleBadgeClass}">${roleText}</span></td>
+                <td data-label="Data de Criação">${createdDate}</td>
+                <td data-label="Ações" class="actions">
+                    <button class="edit-btn" data-id="${user._id}">Editar</button>
+                    <button class="delete-btn" data-id="${user._id}">Eliminar</button>
+                </td>
+            `;
+        });
+
+        // Adicionar event listeners
+        document.querySelectorAll('.users-management-table .edit-btn').forEach(button => {
+            button.addEventListener('click', (event) => openEditUserModal(event.target.dataset.id));
+        });
+        document.querySelectorAll('.users-management-table .delete-btn').forEach(button => {
+            button.addEventListener('click', (event) => deleteUser(event.target.dataset.id));
+        });
+    }
+
+    // Função para abrir modal de edição de utilizador
+    function openEditUserModal(userId) {
+        const user = users.find(u => u._id === userId);
+        if (!user) return;
+
+        document.getElementById('editUserId').value = user._id;
+        document.getElementById('editUserUsername').value = user.username;
+        document.getElementById('editUserEmail').value = user.email;
+        document.getElementById('editUserRole').value = user.role;
+        document.getElementById('editUserPassword').value = '';
+
+        editUserModal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Função para fechar modal de utilizador
+    function closeEditUserModal() {
+        editUserModal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // Event listeners para fechar modal de utilizador
+    closeEditUserModalButtons.forEach(button => {
+        button.addEventListener('click', closeEditUserModal);
+    });
+
+    // Fechar modal ao clicar fora
+    window.addEventListener('click', (event) => {
+        if (event.target === editUserModal) {
+            closeEditUserModal();
+        }
+    });
+
+    // Submit do formulário de edição de utilizador
+    editUserForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const userId = document.getElementById('editUserId').value;
+        const username = document.getElementById('editUserUsername').value;
+        const email = document.getElementById('editUserEmail').value;
+        const role = document.getElementById('editUserRole').value;
+        const password = document.getElementById('editUserPassword').value;
+
+        const updateData = { username, email, role };
+        if (password) updateData.password = password;
+
+        try {
+            const response = await fetchWithAuth(`${API_URL}/users/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            alert('Utilizador atualizado com sucesso!');
+            closeEditUserModal();
+            loadUsers();
+        } catch (error) {
+            console.error('Erro ao atualizar utilizador:', error);
+            alert('Erro ao atualizar utilizador. Verifique o console para mais detalhes.');
+        }
+    });
+
+    // Função para deletar utilizador
+    async function deleteUser(userId) {
+        const user = users.find(u => u._id === userId);
+        if (confirm(`Tem certeza que deseja eliminar o utilizador "${user.username}"?`)) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao eliminar utilizador');
+                }
+
+                alert('Utilizador eliminado com sucesso!');
+                loadUsers();
+            } catch (error) {
+                console.error('Erro ao eliminar utilizador:', error);
+                alert('Erro ao eliminar utilizador: ' + error.message);
+            }
+        }
+    }
+
+    // Carrega utilizadores quando a página é carregada
+    loadUsers();
+
     // Carrega os eventos quando a página é carregada
     loadEvents();
 });

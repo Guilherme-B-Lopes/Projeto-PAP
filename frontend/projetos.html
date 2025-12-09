@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projetos - CURSOS PROFICIONAIS AEB</title>
+    <link rel="stylesheet" href="style/style.css">
+    <style>
+        /* Estilos específicos para a página de projetos */
+        .projects-page {
+            padding: 100px 0 60px;
+            background: #f9f9f9;
+            min-height: calc(100vh - 150px);
+        }
+        
+        .search-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+        
+        .search-box::after {
+            content: '🔍';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .filter-btn:hover {
+            border-color: #2196F3;
+            color: #2196F3;
+        }
+        
+        .filter-btn.active {
+            background: #2196F3;
+            color: white;
+            border-color: #2196F3;
+        }
+        
+        .results-info {
+            margin: 1rem 0;
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+        
+        .no-results h3 {
+            margin-bottom: 1rem;
+            color: #666;
+        }
+        
+        .projects-section {
+            margin-top: 2rem;
+        }
+        
+        .projects-section h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu -->
+    <nav>
+        <!-- botão hamburger (mobile) -->
+        <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="main-navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+
+        <ul id="main-navigation">
+            <li><a href="index.html#home">Início</a></li>
+            <li><a href="projetos.html">Projetos</a></li>
+            <li><a href="index.html#sobre">Sobre</a></li>
+            <li><a href="index.html#contato">Contato</a></li>
+            <li><a href="cadastro.html">Criar.Proj</a></li>
+            <li><a href="admin.html">Admin</a></li>
+            <li><a href="calendario.html">Calendário</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+    </nav>
+
+    <!-- Página de Projetos -->
+    <section class="projects-page">
+        <div class="container">
+            <h1 style="text-align: center; margin-bottom: 2rem; font-size: 2.5rem; color: #333;">Nossos Projetos</h1>
+            
+            <!-- Seção de Busca e Filtros -->
+            <div class="search-section">
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Buscar projetos por nome, turma ou descrição...">
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">Todos</button>
+                        <button class="filter-btn" data-filter="completo">Completo</button>
+                        <button class="filter-btn" data-filter="incompleto">Incompleto</button>
+                        <button class="filter-btn" data-filter="ideia">Ideia</button>
+                    </div>
+                </div>
+                <div class="results-info" id="resultsInfo">
+                    Carregando projetos...
+                </div>
+            </div>
+
+            <!-- Seção de Projetos -->
+            <div class="projects-section">
+                <div class="project-grid" id="projectGrid" style="display: grid; visibility: visible; opacity: 1;">
+                    <!-- Projetos serão carregados aqui -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal para Detalhes do Projeto -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2 id="modalTitle"></h2>
+            </div>
+            <div class="modal-body">
+                <img id="modalImage" src="" alt="">
+                <p id="modalTurma" class="turma"></p>
+                <p id="modalCategory" class="category"></p>
+                <p id="modalDescription" class="description"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer id="contato">
+        <div class="container">
+            <h3>Contato</h3>
+            <p>Email: contato@exemplo.com</p>
+            <p>Telefone: (11) 1234-5678</p>
+            <p>Endereço: Rua Exemplo, 123 - Portalegre, Portugal</p>
+            <p>&copy; Cursos Proficionais. Agrupamento de Escolas do Bonfim</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script src="js/menu-auth.js"></script>
+    <script src="js/projetos-busca.js"></script>
+    <script src="js/menu-toggle.js"></script>
+</body>
+</html>

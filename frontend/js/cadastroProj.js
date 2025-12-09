@@ -1,12 +1,17 @@
 // cadastroProjeto.js
-const API_URL = 'http://localhost:3000/api';
+// Usar IIFE para isolar o escopo e evitar conflitos com outras declarações de API_URL
+(function() {
+    'use strict';
+    
+    // Declarar API_URL localmente dentro da IIFE para evitar conflitos
+    const API_URL = 'http://localhost:3000/api';
 
-// Verificar autenticação antes de permitir cadastro
-if (typeof requireAuth === 'function') {
-    requireAuth();
-}
+    // Verificar autenticação antes de permitir cadastro
+    if (typeof requireAuth === 'function') {
+        requireAuth();
+    }
 
-document.getElementById('projectForm').addEventListener('submit', async function(event) {
+    document.getElementById('projectForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
     const name = document.getElementById('projectName').value;
@@ -23,26 +28,27 @@ document.getElementById('projectForm').addEventListener('submit', async function
     const imageFilesInput = document.getElementById('projectImages');
     const imageUrlsText = document.getElementById('projectImageUrls').value;
     
-    const images = [];
+    const imageUrls = [];
+    const imageFiles = [];
 
-    // Adicionar URLs de imagens
+    // Processar URLs de imagens
     if (imageUrlsText.trim()) {
         const urls = imageUrlsText
             .split(/\r?\n/)
             .map(s => s.trim())
             .filter(Boolean);
-        images.push(...urls);
+        imageUrls.push(...urls);
     }
 
-    // Adicionar imagens carregadas
+    // Processar arquivos de imagens
     if (imageFilesInput.files.length > 0) {
         for (let file of imageFilesInput.files) {
-            images.push(file);
+            imageFiles.push(file);
         }
     }
 
-    // Validar imagens
-    if (images.length === 0) {
+    // Validar que tem pelo menos uma imagem (URL ou arquivo)
+    if (imageUrls.length === 0 && imageFiles.length === 0) {
         alert('Por favor, adicione pelo menos uma imagem (arquivo ou URL).');
         return;
     }
@@ -65,13 +71,15 @@ document.getElementById('projectForm').addEventListener('submit', async function
     formData.append('category', category);
     formData.append('description', description);
 
-    // Adicionar imagens
-    images.forEach((image, index) => {
-        if (image instanceof File) {
-            formData.append(`imageFiles`, image);
-        } else {
-            formData.append(`imageUrls`, image);
-        }
+    // Adicionar URLs de imagens como JSON (para o backend processar corretamente)
+    if (imageUrls.length > 0) {
+        // Enviar como JSON stringificado para o backend processar como array
+        formData.append('imageUrls', JSON.stringify(imageUrls));
+    }
+
+    // Adicionar arquivos de imagens
+    imageFiles.forEach((file) => {
+        formData.append('imageFiles', file);
     });
 
     // Adicionar vídeo
@@ -84,10 +92,31 @@ document.getElementById('projectForm').addEventListener('submit', async function
     }
 
     try {
+        console.log('[cadastroProj] Iniciando envio do projeto...');
+        console.log('[cadastroProj] Dados do formulário:', {
+            name,
+            turma,
+            category,
+            description,
+            imageUrls: imageUrls.length,
+            imageFiles: imageFiles.length,
+            videoUrl: videoData
+        });
+        
+        // Verificar autenticação
+        if (!auth || !auth.isAuthenticated()) {
+            alert('Você precisa estar logado para criar projetos!');
+            window.location.href = 'login.html';
+            return;
+        }
+        
         // Obter headers de autenticação
         const headers = auth.getAuthHeaders();
         // Remover Content-Type para permitir que o navegador defina multipart/form-data
         delete headers['Content-Type'];
+        
+        console.log('[cadastroProj] Enviando requisição para:', `${API_URL}/projects`);
+        console.log('[cadastroProj] Headers:', headers);
         
         const response = await fetch(`${API_URL}/projects`, {
             method: 'POST',
@@ -96,22 +125,32 @@ document.getElementById('projectForm').addEventListener('submit', async function
             // NÃO definir Content-Type: application/json - o navegador vai definir multipart/form-data automaticamente
         });
 
+        console.log('[cadastroProj] Resposta recebida. Status:', response.status, response.statusText);
+
         if (!response.ok) {
             let errorText = '';
             try {
                 const errJson = await response.json();
                 errorText = errJson && errJson.message ? errJson.message : JSON.stringify(errJson);
+                console.error('[cadastroProj] Erro da API:', errJson);
             } catch (e) {
                 errorText = await response.text();
+                console.error('[cadastroProj] Erro ao processar resposta:', errorText);
             }
             throw new Error(`Falha ao cadastrar: ${response.status} ${errorText}`);
         }
 
         const addedProject = await response.json();
+        console.log('[cadastroProj] Projeto cadastrado com sucesso:', addedProject);
         alert('Projeto cadastrado com sucesso! ID: ' + addedProject._id);
         document.getElementById('projectForm').reset();
+        
+        // Opcional: redirecionar para a página de projetos
+        // window.location.href = 'projetos.html';
     } catch (error) {
-        console.error('Erro ao cadastrar projeto:', error);
+        console.error('[cadastroProj] Erro ao cadastrar projeto:', error);
+        console.error('[cadastroProj] Stack:', error.stack);
         alert('Erro ao cadastrar projeto: ' + (error && error.message ? error.message : 'verifique o console.'));
     }
-});
+    });
+})(); // Fim da IIFE

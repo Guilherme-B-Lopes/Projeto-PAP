@@ -355,6 +355,202 @@
                 margin: 5px;
             }
         }
+
+        /* Estilos para gerenciamento de utilizadores */
+        .users-management-section {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+        }
+        .users-management-section h3 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            color: #333;
+        }
+        .users-management-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .users-management-table th,
+        .users-management-table td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .users-management-table th {
+            background-color: #333;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .users-management-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .users-management-table tr:hover {
+            background-color: #e9e9e9;
+        }
+        .users-management-table .badge-admin {
+            background-color: #d32f2f;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .users-management-table .badge-user {
+            background-color: #2196F3;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .users-management-table .actions button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: background-color 0.3s;
+        }
+        .users-management-table .actions button.edit-btn:hover {
+            background-color: #1976D2;
+        }
+        .users-management-table .actions button.delete-btn {
+            background-color: #f44336;
+        }
+        .users-management-table .actions button.delete-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        /* Modal de Edição de Utilizador */
+        .edit-user-modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease;
+        }
+        .edit-user-modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+        .edit-user-modal-content h3 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #333;
+            font-size: 1.8rem;
+        }
+        .edit-user-modal-content .form-group {
+            margin-bottom: 1rem;
+        }
+        .edit-user-modal-content .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #555;
+        }
+        .edit-user-modal-content .form-group input,
+        .edit-user-modal-content .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .edit-user-modal-content .modal-actions {
+            text-align: right;
+            margin-top: 1.5rem;
+        }
+        .edit-user-modal-content .modal-actions button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+        .edit-user-modal-content .modal-actions .save-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        .edit-user-modal-content .modal-actions .save-btn:hover {
+            background-color: #45a049;
+        }
+        .edit-user-modal-content .modal-actions .cancel-btn {
+            background-color: #ccc;
+            color: #333;
+            border: 1px solid #bbb;
+        }
+        .edit-user-modal-content .modal-actions .cancel-btn:hover {
+            background-color: #bbb;
+        }
+
+        /* Responsividade para tabela de utilizadores */
+        @media (max-width: 768px) {
+            .users-management-table, .users-management-table tbody, .users-management-table tr, .users-management-table td, .users-management-table th {
+                display: block;
+            }
+            .users-management-table thead {
+                display: none;
+            }
+            .users-management-table tr {
+                margin-bottom: 1rem;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            }
+            .users-management-table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+            .users-management-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 15px;
+                width: calc(50% - 30px);
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: #333;
+            }
+            .users-management-table td:last-child {
+                border-bottom: 0;
+            }
+            .users-management-table .actions {
+                text-align: center;
+                padding-top: 10px;
+            }
+            .users-management-table .actions button {
+                margin: 5px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -362,7 +558,7 @@
     <nav>
         <ul>
             <li><a href="index.html#home">Início</a></li>
-            <li><a href="index.html#produtos">Projetos</a></li>
+            <li><a href="projetos.html">Projetos</a></li>
             <li><a href="index.html#sobre">Sobre</a></li>
             <li><a href="index.html#contato">Contato</a></li>
             <li><a href="cadastro.html">Criar.Proj</a></li>
@@ -434,6 +630,64 @@
     </div>
 </div>
 
+        <!-- Gerenciamento de Utilizadores -->
+    <section class="admin-section users-management-section">
+        <div class="container">
+            <h3>Gerenciamento de Utilizadores</h3>
+
+            <!-- Tabela de Gerenciamento de Utilizadores -->
+            <table class="users-management-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Data de Criação</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="adminUserTableBody">
+                    <!-- Utilizadores carregados via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Modal de Edição de Utilizador -->
+    <div id="editUserModal" class="edit-user-modal">
+        <div class="edit-user-modal-content">
+            <span class="close-edit-user-modal">&times;</span>
+            <h3>Editar Utilizador</h3>
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label for="editUserUsername">Username:</label>
+                    <input type="text" id="editUserUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="editUserEmail">Email:</label>
+                    <input type="email" id="editUserEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="editUserRole">Role:</label>
+                    <select id="editUserRole" required>
+                        <option value="user">Utilizador</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editUserPassword">Nova Senha (deixar em branco para manter a atual):</label>
+                    <input type="password" id="editUserPassword">
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="save-btn">Guardar Alterações</button>
+                    <button type="button" class="cancel-btn close-edit-user-modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
                     <!--Gerenciamento de Eventos -->
     <section class="admin-section event-management-section">
         <div class="container">
@@ -480,10 +734,7 @@
         </div>
     </section>
 
-        </section>
-    
-
-        <footer id="contato">
+    <footer id="contato">
             <div class="container">
                 <h3>Contato</h3>
                 <p>Email: contato@exemplo.com</p>

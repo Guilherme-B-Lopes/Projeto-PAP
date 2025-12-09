@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-result {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teste de API - Projetos</h1>
+    <button onclick="testAPI()">Testar API</button>
+    <div id="results"></div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="test-result info">Testando API...</div>';
+
+            try {
+                // Teste 1: Verificar se a URL está acessível
+                console.log('Testando:', API_URL + '/projects');
+                const response = await fetch(`${API_URL}/projects`);
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'test-result';
+                
+                if (!response.ok) {
+                    resultDiv.className += ' error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Erro na Resposta</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>URL:</strong> ${API_URL}/projects</p>
+                    `;
+                } else {
+                    const data = await response.json();
+                    resultDiv.className += ' success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Sucesso!</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Total de projetos:</strong> ${Array.isArray(data) ? data.length : 'N/A'}</p>
+                        <p><strong>Tipo de dados:</strong> ${Array.isArray(data) ? 'Array ✓' : typeof data}</p>
+                        <details>
+                            <summary>Ver dados completos</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                    
+                    // Verificar estrutura dos projetos
+                    if (Array.isArray(data) && data.length > 0) {
+                        const firstProject = data[0];
+                        const structureDiv = document.createElement('div');
+                        structureDiv.className = 'test-result info';
+                        structureDiv.innerHTML = `
+                            <h3>📋 Estrutura do Primeiro Projeto:</h3>
+                            <ul>
+                                <li><strong>_id:</strong> ${firstProject._id || 'N/A'}</li>
+                                <li><strong>name:</strong> ${firstProject.name || 'N/A'}</li>
+                                <li><strong>turma:</strong> ${firstProject.turma || 'N/A'}</li>
+                                <li><strong>category:</strong> ${firstProject.category || 'N/A'}</li>
+                                <li><strong>description:</strong> ${firstProject.description ? firstProject.description.substring(0, 50) + '...' : 'N/A'}</li>
+                                <li><strong>images:</strong> ${Array.isArray(firstProject.images) ? firstProject.images.length + ' imagem(ns)' : 'N/A'}</li>
+                                <li><strong>image:</strong> ${firstProject.image || 'N/A'}</li>
+                            </ul>
+                        `;
+                        resultsDiv.appendChild(structureDiv);
+                    }
+                }
+                
+                resultsDiv.appendChild(resultDiv);
+                
+            } catch (error) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'test-result error';
+                errorDiv.innerHTML = `
+                    <h3>❌ Erro ao Conectar</h3>
+                    <p><strong>Erro:</strong> ${error.message}</p>
+                    <p><strong>URL:</strong> ${API_URL}/projects</p>
+                    <p><strong>Possíveis causas:</strong></p>
+                    <ul>
+                        <li>Servidor não está rodando</li>
+                        <li>URL incorreta</li>
+                        <li>Problema de CORS</li>
+                        <li>Firewall bloqueando a conexão</li>
+                    </ul>
+                    <p><strong>Stack trace:</strong></p>
+                    <pre>${error.stack}</pre>
+                `;
+                resultsDiv.appendChild(errorDiv);
+            }
+        }
+
+        // Testar automaticamente ao carregar
+        window.addEventListener('load', () => {
+            testAPI();
+        });
+    </script>
+</body>
+</html>

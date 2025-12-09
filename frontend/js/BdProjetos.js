@@ -96,77 +96,125 @@ function closeModal() {
 // --- Funções para carregar os projetos ---
 async function fetchProjects() {
     try {
-        console.log('Carregando projetos...');
+        console.log('[BdProjetos] Iniciando carregamento de projetos...');
+        console.log('[BdProjetos] URL da API:', API_URL + '/projects');
+        
         const response = await fetch(`${API_URL}/projects`);
+        console.log('[BdProjetos] Resposta recebida. Status:', response.status, response.statusText);
+        
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('[BdProjetos] Erro na resposta:', errorText);
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
         }
+        
         projects = await response.json();
-        console.log('Projetos carregados:', projects);
+        console.log('[BdProjetos] Projetos carregados com sucesso. Total:', projects.length);
+        console.log('[BdProjetos] Dados dos projetos:', projects);
+        
+        if (!Array.isArray(projects)) {
+            console.error('[BdProjetos] ERRO: projects não é um array! Tipo:', typeof projects);
+            throw new Error('Resposta da API não é um array');
+        }
+        
         renderProjects(); // Renderiza os projetos no grid
     } catch (error) {
-        console.error('Erro ao carregar projetos:', error);
+        console.error('[BdProjetos] Erro ao carregar projetos:', error);
+        console.error('[BdProjetos] Stack trace:', error.stack);
+        
         // Mostrar mensagem de erro no grid
         const projectGrid = document.querySelector('.project-grid');
         if (projectGrid) {
-            projectGrid.innerHTML = '<p style="text-align: center; grid-column: 1 / -1; color: red;">Erro ao carregar projetos. Verifique se o servidor está rodando.</p>';
+            projectGrid.innerHTML = `
+                <div style="text-align: center; grid-column: 1 / -1; color: red; padding: 2rem;">
+                    <h3>Erro ao carregar projetos</h3>
+                    <p><strong>Erro:</strong> ${error.message}</p>
+                    <p><strong>URL:</strong> ${API_URL}/projects</p>
+                    <p>Verifique se o servidor está rodando e acessível.</p>
+                    <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">Abra o console do navegador (F12) para mais detalhes.</p>
+                </div>
+            `;
+        } else {
+            console.error('[BdProjetos] ERRO CRÍTICO: Elemento .project-grid não encontrado no DOM!');
         }
     }
 }
 
 function renderProjects() {
+    console.log('[BdProjetos] Iniciando renderização de projetos...');
+    console.log('[BdProjetos] Total de projetos para renderizar:', projects.length);
+    
     const projectGrid = document.querySelector('.project-grid');
     if (!projectGrid) {
-        console.error('Grid de projetos não encontrado no DOM');
+        console.error('[BdProjetos] ERRO: Grid de projetos não encontrado no DOM!');
+        console.error('[BdProjetos] Tentando encontrar elementos...');
+        const allGrids = document.querySelectorAll('[class*="grid"]');
+        console.log('[BdProjetos] Elementos com "grid" no nome:', allGrids);
         return;
     }
     
-    console.log('Renderizando projetos:', projects);
+    console.log('[BdProjetos] Grid encontrado:', projectGrid);
+    console.log('[BdProjetos] Renderizando projetos:', projects);
+    
     projectGrid.innerHTML = ''; // Limpa o grid existente
 
     if (projects.length === 0) {
-        projectGrid.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">Nenhum projeto disponível.</p>';
+        console.warn('[BdProjetos] Nenhum projeto para renderizar');
+        projectGrid.innerHTML = '<p style="text-align: center; grid-column: 1 / -1; padding: 2rem;">Nenhum projeto disponível.</p>';
         return;
     }
 
+    let renderedCount = 0;
     projects.forEach((project, index) => {
-        const projectItem = document.createElement('div');
-        projectItem.classList.add('project-item', project.category || '');
-        projectItem.setAttribute('data-index', index);
-        
-        // Melhorar a lógica para obter a imagem
-        let thumbSrc = '';
-        if (Array.isArray(project.images) && project.images.length > 0) {
-            thumbSrc = project.images[0];
-        } else if (project.image) {
-            thumbSrc = project.image;
-        } else {
-            thumbSrc = 'https://via.placeholder.com/300x200/cccccc/666666?text=Sem+Imagem';
-        }
-        
-        projectItem.innerHTML = `
-            <div class="project-thumb">
-                <img src="${thumbSrc}" alt="${project.name}" onerror="this.src='https://via.placeholder.com/300x200/cccccc/666666?text=Erro+na+Imagem'">
-                <span class="badge">${project.category || ''}</span>
-            </div>
-            <div class="project-info">
-                <h3>${project.name}</h3>
-                <p class="turma">Turma: ${project.turma || '-'}</p>
-            </div>
-        `;
-        projectGrid.appendChild(projectItem);
+        try {
+            console.log(`[BdProjetos] Renderizando projeto ${index + 1}/${projects.length}:`, project.name);
+            
+            const projectItem = document.createElement('div');
+            projectItem.classList.add('project-item', project.category || '');
+            projectItem.setAttribute('data-index', index);
+            
+            // Melhorar a lógica para obter a imagem
+            let thumbSrc = '';
+            if (Array.isArray(project.images) && project.images.length > 0) {
+                thumbSrc = project.images[0];
+            } else if (project.image) {
+                thumbSrc = project.image;
+            } else {
+                thumbSrc = 'https://via.placeholder.com/300x200/cccccc/666666?text=Sem+Imagem';
+            }
+            
+            projectItem.innerHTML = `
+                <div class="project-thumb">
+                    <img src="${thumbSrc}" alt="${project.name || 'Projeto'}" onerror="this.src='https://via.placeholder.com/300x200/cccccc/666666?text=Erro+na+Imagem'">
+                    <span class="badge">${project.category || ''}</span>
+                </div>
+                <div class="project-info">
+                    <h3>${project.name || 'Sem nome'}</h3>
+                    <p class="turma">Turma: ${project.turma || '-'}</p>
+                </div>
+            `;
+            projectGrid.appendChild(projectItem);
+            renderedCount++;
 
-        projectItem.addEventListener('click', () => {
-            console.log('Clicou no projeto:', project.name, 'índice:', index);
-            openModalByIndex(index);
-        });
+            projectItem.addEventListener('click', () => {
+                console.log('Clicou no projeto:', project.name, 'índice:', index);
+                openModalByIndex(index);
+            });
+        } catch (error) {
+            console.error(`[BdProjetos] Erro ao renderizar projeto ${index}:`, error);
+        }
     });
     
-    console.log('Projetos renderizados com sucesso');
+    console.log(`[BdProjetos] Renderização concluída! ${renderedCount} projeto(s) renderizado(s) com sucesso`);
+    console.log('[BdProjetos] Grid final:', projectGrid);
+    console.log('[BdProjetos] Filhos do grid:', projectGrid.children.length);
 }
 
 // --- Inicialização ---
-document.addEventListener('DOMContentLoaded', () => {
+function initializeProjects() {
+    console.log('[BdProjetos] Inicializando módulo de projetos...');
+    console.log('[BdProjetos] Estado do documento:', document.readyState);
+    
     // Inicializar elementos do DOM
     modal = document.getElementById('projectModal');
     modalTitle = document.getElementById('modalTitle');
@@ -176,28 +224,54 @@ document.addEventListener('DOMContentLoaded', () => {
     modalImage = document.getElementById('modalImage');
     closeBtn = document.querySelector('#projectModal .close');
     
-    // Verificar se os elementos existem
-    if (!modal) {
-        console.error('Modal não encontrado no DOM');
-        return;
+    // Verificar se o grid existe
+    const projectGrid = document.querySelector('.project-grid');
+    if (!projectGrid) {
+        console.error('[BdProjetos] ERRO CRÍTICO: Elemento .project-grid não encontrado!');
+        console.error('[BdProjetos] Verificando se a página tem a estrutura correta...');
+        const productsSection = document.querySelector('.products, #produtos');
+        console.log('[BdProjetos] Seção de produtos encontrada:', productsSection);
+        return false;
     }
     
+    console.log('[BdProjetos] Grid encontrado:', projectGrid);
+    console.log('[BdProjetos] Modal encontrado:', modal);
+    
+    // Sempre carregar projetos, mesmo se o modal não existir
+    console.log('[BdProjetos] Iniciando carregamento de projetos...');
     fetchProjects(); // Carrega os projetos do backend
     
-    // Fechar modal via X
-    if (closeBtn) {
-        closeBtn.addEventListener('click', closeModal);
+    // Configurar modal apenas se existir
+    if (modal) {
+        console.log('[BdProjetos] Configurando modal...');
+        // Fechar modal via X
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+        // Fechar clicando fora do conteúdo do modal
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+        // Fechar via tecla ESC
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    } else {
+        console.warn('[BdProjetos] Modal de projetos não encontrado - funcionalidade de detalhes desabilitada');
     }
-    // Fechar clicando fora do conteúdo do modal
-    window.addEventListener('click', (event) => {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
-    // Fechar via tecla ESC
-    window.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-            closeModal();
-        }
-    });
-});
+    
+    console.log('[BdProjetos] Inicialização concluída');
+    return true;
+}
+
+// Inicializar quando DOM estiver pronto
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeProjects);
+} else {
+    // DOM já está carregado (script foi carregado de forma async)
+    initializeProjects();
+}
