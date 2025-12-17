@@ -6,6 +6,26 @@
     <title>CURSOS PROFICIONAIS AEB</title>
     <link rel="stylesheet" href="style/style.css">
     <style>
+        /* Animações para modais */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
         /* Estilos adicionais específicos para a página de administração (mantidos e ajustados) */
         .admin-section {
             padding: 100px 0 60px; /* Ajuste para o menu fixo */
@@ -88,7 +108,7 @@
         .edit-modal-content {
             background-color: #fefefe;
             margin: 5% auto;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
             width: 90%;
             max-width: 700px;
@@ -96,21 +116,41 @@
             overflow-y: auto;
             position: relative;
             animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .close-edit-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+        .close-edit-modal:hover,
+        .close-edit-modal:focus {
+            color: #000;
+            text-decoration: none;
         }
         .edit-modal-content h3 {
             text-align: center;
             margin-bottom: 1.5rem;
+            margin-top: 0;
             color: #333;
             font-size: 1.8rem;
+            padding-right: 30px;
         }
         .edit-modal-content .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
         .edit-modal-content .form-group label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: bold;
             color: #555;
+            font-size: 0.95rem;
         }
         .edit-modal-content .form-group input,
         .edit-modal-content .form-group textarea,
@@ -121,22 +161,42 @@
             border-radius: 5px;
             font-size: 1rem;
             box-sizing: border-box;
+            font-family: inherit;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .edit-modal-content .form-group input:focus,
+        .edit-modal-content .form-group textarea:focus,
+        .edit-modal-content .form-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
         }
         .edit-modal-content .form-group textarea {
-            height: 100px;
+            min-height: 100px;
             resize: vertical;
+            font-family: inherit;
+        }
+        .edit-modal-content .form-group select {
+            background-color: white;
+            cursor: pointer;
+        }
+        .edit-modal-content .form-group select option {
+            padding: 10px;
         }
         .edit-modal-content .modal-actions {
             text-align: right;
-            margin-top: 1.5rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #eee;
         }
         .edit-modal-content .modal-actions button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 5px;
             cursor: pointer;
             font-size: 1rem;
             margin-left: 10px;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            font-weight: 500;
         }
         .edit-modal-content .modal-actions .save-btn {
             background-color: #4CAF50;
@@ -145,16 +205,49 @@
         }
         .edit-modal-content .modal-actions .save-btn:hover {
             background-color: #45a049;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(76, 175, 80, 0.3);
         }
         .edit-modal-content .modal-actions .cancel-btn {
-            background-color: #ccc;
+            background-color: #f5f5f5;
             color: #333;
-            border: 1px solid #bbb;
+            border: 1px solid #ddd;
         }
         .edit-modal-content .modal-actions .cancel-btn:hover {
-            background-color: #bbb;
+            background-color: #e0e0e0;
+            border-color: #bbb;
         }
 
+        /* Responsividade para o modal de edição */
+        @media (max-width: 768px) {
+            .edit-modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 20px;
+                max-height: 85%;
+            }
+            .edit-modal-content h3 {
+                font-size: 1.5rem;
+                padding-right: 0;
+            }
+            .close-edit-modal {
+                top: 10px;
+                right: 15px;
+                font-size: 24px;
+            }
+            .edit-modal-content .form-group {
+                margin-bottom: 1.2rem;
+            }
+            .edit-modal-content .modal-actions {
+                text-align: center;
+            }
+            .edit-modal-content .modal-actions button {
+                width: 48%;
+                margin: 5px 1%;
+                padding: 10px 15px;
+            }
+        }
+        
         /* Responsividade para a tabela de projetos */
         @media (max-width: 768px) {
             .project-management-table, .project-management-table tbody, .project-management-table tr, .project-management-table td, .project-management-table th {
@@ -570,15 +663,15 @@
     <!-- Administração -->
 <section class="admin-section">
     <div class="container">
-        <h2>Administração de Projetos</h2> <!-- Mudança: "Produtos" → "Projetos" -->
+        <h2>Administração de Projetos</h2>  
         <table class="project-management-table"> <!-- Mudança: class="product-management-table" → "project-management-table" -->
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Imagem</th>
                     <th>Nome</th>
-                    <th>Turma</th> <!-- Novo: em vez de "Preço" -->
-                    <th>Categoria</th> <!-- Novo campo -->
+                    <th>Turma</th> 
+                    <th>Categoria</th> 
                     <th>Descrição</th>
                     <th>Ações</th>
                 </tr>
@@ -590,23 +683,23 @@
     </div>
 </section>
 
-<!-- Modal de Edição de Projeto (antigo Produto) -->
-<div id="editProjectModal" class="edit-modal"> <!-- Mudança: id="editProductModal" → "editProjectModal" -->
+<!-- Modal de Edição de Projeto -->
+<div id="editProjectModal" class="edit-modal"> 
     <div class="edit-modal-content">
         <span class="close-edit-modal">&times;</span>
-        <h3>Editar Projeto</h3> <!-- Mudança: "Produto" → "Projeto" -->
-        <form id="editProjectForm"> <!-- Mudança: id="editProductForm" → "editProjectForm" -->
+        <h3>Editar Projeto</h3>
+        <form id="editProjectForm">
             <input type="hidden" id="editProjectId">
             <div class="form-group">
-                <label for="editProjectName">Nome do Projeto:</label> <!-- Mudança -->
+                <label for="editProjectName">Nome do Projeto:</label> 
                 <input type="text" id="editProjectName" required>
             </div>
             <div class="form-group">
-                <label for="editProjectTurma">Turma:</label> <!-- Novo -->
+                <label for="editProjectTurma">Turma:</label> 
                 <input type="text" id="editProjectTurma" required>
             </div>
             <div class="form-group">
-                <label for="editProjectCategory">Categoria:</label> <!-- Novo -->
+                <label for="editProjectCategory">Categoria:</label> 
                 <select id="editProjectCategory" class="category-select" required>
                     <option value="">Selecione uma categoria</option>
                     <option value="completo">Completo</option>
@@ -630,12 +723,12 @@
     </div>
 </div>
 
-        <!-- Gerenciamento de Utilizadores -->
+        <!-- Gestor de Utilizadores -->
     <section class="admin-section users-management-section">
         <div class="container">
-            <h3>Gerenciamento de Utilizadores</h3>
+            <h3>Gestor de Utilizadores</h3>
 
-            <!-- Tabela de Gerenciamento de Utilizadores -->
+            <!-- Tabela de Gestor de Utilizadores -->
             <table class="users-management-table">
                 <thead>
                     <tr>
@@ -688,10 +781,10 @@
         </div>
     </div>
 
-                    <!--Gerenciamento de Eventos -->
+                    <!--Gestor de Eventos -->
     <section class="admin-section event-management-section">
         <div class="container">
-            <h3>Gerenciamento de Eventos</h3>
+            <h3>Gestor de Eventos</h3>
 
             <div class="event-form-container">
                 <h4>Adicionar/Editar Evento</h4>
@@ -747,28 +840,30 @@
     <script src="js/auth.js"></script>
     <script>
         // Proteger página admin - apenas admins podem acessar
-        // Verificar ANTES de carregar qualquer conteúdo
-        (function() {
+        // Verificar quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', function() {
             // Aguardar um pouco para garantir que auth.js foi carregado
-            if (typeof auth === 'undefined') {
-                // Se auth não estiver disponível, redirecionar
-                alert('Erro ao verificar autenticação. Redirecionando...');
-                window.location.href = 'login.html';
-                return;
-            }
+            setTimeout(function() {
+                if (typeof auth === 'undefined') {
+                    // Se auth não estiver disponível, redirecionar
+                    alert('Erro ao verificar autenticação. Redirecionando...');
+                    window.location.href = 'login.html';
+                    return;
+                }
 
-            if (!auth.isAuthenticated()) {
-                alert('Você precisa estar logado para acessar esta página.');
-                window.location.href = 'login.html';
-                return;
-            }
+                if (!auth.isAuthenticated()) {
+                    alert('Você precisa estar logado para acessar esta página.');
+                    window.location.href = 'login.html';
+                    return;
+                }
 
-            if (!auth.isAdmin()) {
-                alert('Acesso negado. Apenas administradores podem acessar esta página.');
-                window.location.href = 'index.html';
-                return;
-            }
-        })();
+                if (!auth.isAdmin()) {
+                    alert('Acesso negado. Apenas administradores podem acessar esta página.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+            }, 100);
+        });
     </script>
     <script src="js/menu-auth.js"></script>
     <script src="js/admin.js"></script>

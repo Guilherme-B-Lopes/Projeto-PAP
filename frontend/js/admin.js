@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td data-label="Categoria">${project.category.charAt(0).toUpperCase() + project.category.slice(1)}</td> <!-- Novo: Categoria -->
                 <td data-label="Descrição">${project.description}</td>
                 <td data-label="Ações" class="actions">
-                    <button class="edit-btn" data-id="${project._id}">Editar</button>
+                    <button style="margin: 5px; cursor: pointer;" class="edit-btn" data-id="${project._id}">Editar</button>
                     <button class="delete-btn" data-id="${project._id}">Eliminar</button>
                 </td>
             `;

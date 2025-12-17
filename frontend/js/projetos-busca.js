@@ -131,7 +131,7 @@ async function loadProjects() {
         console.log('[projetos-busca] Timestamp:', new Date().toISOString());
         
         // Teste de conectividade básico
-        console.log('[projetos-busca] Testando conectividade...');
+        console.log('[projetos-busca] Teste conectividade...');
         
         const response = await fetch(`${API_URL}/projects`, {
             method: 'GET',
@@ -171,14 +171,14 @@ async function loadProjects() {
             if (projectGrid) {
                 projectGrid.innerHTML = `
                     <div class="no-results" style="grid-column: 1 / -1; padding: 2rem; display: block;">
-                        <h3>Nenhum projeto cadastrado</h3>
-                        <p>Ainda não há projetos cadastrados no sistema.</p>
+                        <h3>Nenhum projeto Criados</h3>
+                        <p>Ainda não há projetos criados no sistema.</p>
                         <p><a href="cadastro.html" style="color: #2196F3;">Criar primeiro projeto</a></p>
                     </div>
                 `;
             }
             if (resultsInfo) {
-                resultsInfo.textContent = 'Nenhum projeto cadastrado';
+                resultsInfo.textContent = 'Nenhum projeto Criado';
             }
             return;
         }
@@ -390,9 +390,9 @@ function updateResultsInfo() {
     const showing = filteredProjects.length;
     
     if (showing === total) {
-        resultsInfo.textContent = `Mostrando todos os ${total} projeto${total !== 1 ? 's' : ''}`;
+        resultsInfo.textContent = `Todos os ${total} projeto${total !== 1 ? 's' : ''}`;
     } else {
-        resultsInfo.textContent = `Mostrando ${showing} de ${total} projeto${total !== 1 ? 's' : ''}`;
+        resultsInfo.textContent = `${showing} de ${total} projeto${total !== 1 ? 's' : ''}`;
     }
 }
 
