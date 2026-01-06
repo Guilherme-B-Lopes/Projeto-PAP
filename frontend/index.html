@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CURSOS PROFICIONAIS AEB</title>
     <link rel="stylesheet" href="style/style.css">
+    <style>
+        h1.ini{
+            text-align: center;
+            margin-top: 40px;
+            color: #ffffff;
+            position: absolute;
+            text-decoration: dashed;
+            font-size: 80px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
 </head>
 <body>
     <!-- Menu -->
@@ -31,26 +44,33 @@
 
     <!-- Imagens com Slideshow -->
     <section class="hero" id="home">
+    
         <div class="slideshow">
             <div class="slide active">
-                <img src="imagemEscola.webp" alt="Slide 1">
+                <img src="imagens/DSC_7903.JPG" alt="Slide 1">
             </div>
             <div class="slide">
-                <img src="escola.jpeg" alt="Slide 2">
+                <img src="imagens/338612504_561464342746759_4538131836186623551_n.jpg" alt="Slide 2">
             </div>
             <div class="slide">
-                <img src="es.jpg" alt="Slide 3">
+                <img src="imagens/IMG_20241108_145316.jpg" alt="Slide 3">
             </div>
         </div>
+      
     </section>
 
     <!-- Introducao -->
     <section class="main-content">
         <div class="container">
-            <h1 class="ini">Bem-vindo </h1>
+            <h1 class="ini"><strong>Bem-vindo</strong></h1>
             <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate a temporibus eius nemo tempora quidem autem facilis. Ipsa beatae explicabo voluptatibus suscipit? Iusto enim magnam quidem deleniti, praesentium placeat? Illo!</p>
             <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloremque a exercitationem accusamus ratione </p>
         </div>
+         <div class="projects-section">
+                <div class="project-grid" id="projectGrid" style="display: grid; visibility: visible; opacity: 1;">
+                    <!-- Projetos carregados aqui -->
+                </div>
+            </div>
     </section>
 
 <!-- Modal para Detalhes do Projeto -->
@@ -85,5 +105,6 @@
     <script src="js/menu-auth.js"></script>
     <script src="js/animatio.js"></script>
     <script src="js/menu-toggle.js"></script>
+    <script src="js/projetos-busca.js"></script>
 </body>
 </html>

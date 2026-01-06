@@ -1,3 +1,15 @@
+window.addEventListener('scroll', function() {
+    const divFixa = document.getElementById('divFixa');
+
+    if (window.scrollY > 0) {
+        
+        divFixa.classList.add('scroll-menu');
+    } else {
+        
+        divFixa.classList.remove('scroll-menu');
+    }
+});
+
 // Script para gerenciar o menu baseado no estado de autenticação
 document.addEventListener('DOMContentLoaded', () => {
     // Verificar se auth está disponível
