@@ -1,16 +1,25 @@
-Conteudo de Aprendizagem
+Conteúdo de Aprendizagem
 
-https://github.com/Universidade-Livre/ciencia-da-computacao?tab=readme-ov-file
+sites
 
-https://roadmap.sh/
+Ciência da computação - https://github.com/Universidade-Livre/ciencia-da-computacao?tab=readme-ov-file
 
-https://exercism.org/
+LP - https://roadmap.sh/
 
-https://css-tricks.com/guides/
+LP - https://exercism.org/
 
-https://devdocs.io/css/display-inside
+LP - https://leetcode.com/
 
-https://animejs.com/documentation
+Estilos de css - https://css-tricks.com/guides/
+Estilos de css - https://devdocs.io/css/display-inside
 
-https://leetcode.com/
+Animação em js - https://animejs.com/documentation
 
+
+
+
+
+
+vídeos: 
+LP - https://www.youtube.com/channel/UC4SVo0Ue36XCfOyb5Lh1viQ
+LP - https://www.youtube.com/@cursoemvideo

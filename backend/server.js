@@ -607,14 +607,15 @@ app.post('/api/auth/create-admin', async (req, res) => {
     }
 });
 
-// Servir arquivos estáticos do frontend (usar caminho absoluto)
+// Servir arquivos estáticos do frontend (assets) e views HTML
 // IMPORTANTE: Isso deve vir DEPOIS das rotas da API
-const frontendPath = path.join(__dirname, '../frontend');
-app.use(express.static(frontendPath));
+const frontendStatic = path.join(__dirname, '../frontend');
+const frontendViews = path.join(__dirname, '../frontend/views');
+app.use(express.static(frontendStatic));
 
-// Rota para a página inicial do frontend
+// Rota para a página inicial do frontend (arquivo HTML nas views)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
+    res.sendFile(path.join(frontendViews, 'index.html'));
 });
 
 // Redirecionar .htm para .html (compatibilidade) - DEVE VIR ANTES DO MIDDLEWARE DE ERRO
@@ -626,7 +627,7 @@ app.get(/.*\.htm$/, (req, res) => {
     }
     
     const htmlPath = req.path.replace(/\.htm$/, '.html');
-    const htmlFile = path.join(frontendPath, htmlPath);
+    const htmlFile = path.join(frontendViews, htmlPath);
     
     if (fs.existsSync(htmlFile)) {
         console.log(`[Redirect] ${req.path} -> ${htmlPath}`);
@@ -661,7 +662,7 @@ app.use((req, res, next) => {
     
     // Se for um arquivo com extensão .html, verificar se existe
     if (req.path.match(/\.html$/)) {
-        const requestedFile = path.join(frontendPath, req.path);
+        const requestedFile = path.join(frontendViews, req.path);
         if (fs.existsSync(requestedFile)) {
             return res.sendFile(requestedFile);
         } else {
@@ -708,7 +709,7 @@ app.get(/.*/, (req, res) => {
     }
     
     // Para todas as outras rotas (sem extensão), servir index.html (SPA behavior)
-    const indexPath = path.join(frontendPath, 'index.html');
+    const indexPath = path.join(frontendViews, 'index.html');
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
@@ -722,6 +723,7 @@ app.get(/.*/, (req, res) => {
 // 6. Iniciar o servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
-    console.log(`Frontend servido de: ${frontendPath}`);
+    console.log(`Frontend assets: ${frontendStatic}`);
+    console.log(`Frontend views (HTML): ${frontendViews}`);
     console.log(`Acesse: http://localhost:${PORT}`);
 });

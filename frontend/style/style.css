@@ -22,7 +22,7 @@ nav {
     top: 0;
     left: 50%;
     transform: translate(-50%);
-    width: 60%;
+    
     background-color: #020202; 
     opacity: 1;
     transition: opacity 1s ease;
@@ -35,18 +35,16 @@ nav {
     font-weight: bold;
     font-family: Arial, Helvetica, sans-serif;
 }
-nav.scroll-menu, 
-nav.scroll-menu:focus-within {
-    opacity: 0;
-    pointer-events: auto;
-}
-nav ul {
+nav  ul {
     list-style: none;
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
 nav ul li {
+    position: relative;
+    
     margin: 0 2rem;
 }
 nav ul li a {
@@ -59,6 +57,70 @@ nav ul li a {
 }
 nav ul li a:hover {
     color: #FCA311;
+}
+/* Submenu */
+.submenu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #555;
+    min-width: 200px;
+    flex-direction: column;
+    border-radius: 5px;
+    margin-top: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+}
+
+.submenu li {
+    padding: 12px 15px;
+    color: white;
+    transition: background-color 0.3s ease;
+    display: block;
+    width: 100%;
+}
+
+.submenu li:first-child {
+    border-radius: 5px 5px 0 0;
+}
+
+.submenu li:last-child {
+    border-radius: 0 0 5px 5px;
+}
+
+.submenu li:hover {
+    background-color: #3f3f3f;
+}
+
+/* Mostrar submenu ao passar o rato (desktop) */
+nav ul li:hover .submenu {
+    display: flex;
+}
+
+/* Botão de toggle para submenu (mobile) */
+.submenu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    transition: transform 0.3s;
+    margin-left: auto;
+}
+.submenu-toggle .toggle-icon {
+    display: inline-block;
+    transition: transform 0.3s;
+}
+.submenu-toggle[aria-expanded="true"] .toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* Submenu aberto em mobile */
+.submenu-parent.open .submenu {
+    display: flex !important;
 }
 
 /* --- Nav responsive: hamburger --- */
@@ -120,6 +182,46 @@ nav.open .hamburger .bar:nth-child(3) { transform: translateY(-6px) rotate(-45de
         border-radius: 8px;
     }
 
+    /* Submenu em mobile */
+    nav ul li.submenu-parent {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    nav ul li.submenu-parent a {
+        flex: 1;
+    }
+    .submenu-toggle {
+        display: block;
+        flex-shrink: 0;
+    }
+    .submenu {
+        display: none !important; /* escondido por padrão */
+        position: static;
+        background-color: #444;
+        flex-direction: column;
+        width: 100%;
+        min-width: auto;
+        margin-top: 0.5rem;
+        box-shadow: none;
+        border-radius: 0;
+        gap: 0;
+    }
+    .submenu li {
+        padding: 0.8rem 1rem;
+        padding-left: 2rem; /* indentação para submenu */
+    }
+    
+    /* Submenu aberto em mobile */
+    .submenu-parent.open .submenu {
+        display: flex !important;
+    }
+    
+    /* Ocultar hover do submenu em mobile */
+    nav ul li:hover .submenu {
+        display: none !important;
+    }
+
     /* mostrar o botão hamburger em mobile */
     nav .hamburger {
         display: block;
@@ -127,10 +229,11 @@ nav.open .hamburger .bar:nth-child(3) { transform: translateY(-6px) rotate(-45de
     
 }
 
+
 /* Seção  Slideshow */
 .hero {
     position: relative;
-    height: 800px; /* Limite de altura */
+    height: 700px; 
     overflow: hidden;
     width: 100%;
 }

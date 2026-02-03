@@ -10,13 +10,45 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.setAttribute('aria-expanded', String(isOpen));
     });
 
-    // Fecha ao clicar num link (mobile)
+    // --- Lógica do Submenu (Mobile) ---
+    const submenuToggles = document.querySelectorAll('.submenu-toggle');
+    
+    submenuToggles.forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Impede que o clique feche o menu principal
+            
+            const parent = toggle.closest('.submenu-parent');
+            const isOpen = parent.classList.toggle('open');
+            toggle.setAttribute('aria-expanded', String(isOpen));
+            console.log('Submenu toggle clicked. isOpen:', isOpen, 'parent:', parent);
+        });
+    });
+
+    // Fecha ao clicar num link (mobile) - EXCETO links do submenu
     menu.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', () => {
+        link.addEventListener('click', (e) => {
+            // Se for um link dentro do submenu, não fechar o menu principal
+            if (link.closest('.submenu')) {
+                return;
+            }
+            
             if (nav.classList.contains('open')) {
                 nav.classList.remove('open');
                 btn.setAttribute('aria-expanded', 'false');
             }
+        });
+    });
+
+    // Fechar submenu ao clicar num link dentro dele
+    document.querySelectorAll('.submenu a').forEach(link => {
+        link.addEventListener('click', () => {
+            document.querySelectorAll('.submenu-parent').forEach(parent => {
+                parent.classList.remove('open');
+            });
+            submenuToggles.forEach(toggle => {
+                toggle.setAttribute('aria-expanded', 'false');
+            });
         });
     });
 

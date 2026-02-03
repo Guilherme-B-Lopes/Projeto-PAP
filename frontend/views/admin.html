@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CURSOS PROFICIONAIS AEB</title>
-    <link rel="stylesheet" href="style/style.css">
+    <link rel="stylesheet" href="../style/style.css">
     <style>
         /* Animações para modais */
         @keyframes fadeIn {
@@ -653,10 +653,11 @@
             <li><a href="index.html#home">Início</a></li>
             <li><a href="projetos.html">Projetos</a></li>
             <li><a href="index.html#sobre">Sobre</a></li>
-            <li><a href="index.html#contato">Contato</a></li>
+            <li><a href="materialEstudo.html">Estudo</a></li>
             <li><a href="cadastro.html">Criar.Proj</a></li>
             <li><a href="admin.html">Admin</a></li>
             <li><a href="calendario.html">Calendário</a></li> 
+            <li><a href="login.html">Login</a></li>
         </ul>
     </nav>
 
@@ -828,45 +829,29 @@
     </section>
 
     <footer id="contato">
-            <div class="container">
-                <h3>Contato</h3>
-                <p>Email: contato@exemplo.com</p>
-                <p>Telefone: (11) 1234-5678</p>
-                <p>Endereço: Rua Exemplo, 123 - Portalegre, Portugal</p>
-                <p>&copy; Cursos Proficionais. Agrupamento de Escolas do Bonfim</p>
-            </div>
-        </footer>
+        <div class="container">
+            <h3>Contato</h3>
+            <p>Email: contato@exemplo.com</p>
+            <p>Telefone: (11) 1234-5678</p>
+            <p>Endereço: Rua Exemplo, 123 - Portalegre, Portugal</p>
+            <p>&copy; Cursos Profissionais. Agrupamento de Escolas do Bonfim</p>
+        </div>
+    </footer>
 
     <script src="js/auth.js"></script>
     <script>
         // Proteger página admin - apenas admins podem acessar
-        // Verificar quando o DOM estiver pronto
         document.addEventListener('DOMContentLoaded', function() {
-            // Aguardar um pouco para garantir que auth.js foi carregado
-            setTimeout(function() {
-                if (typeof auth === 'undefined') {
-                    // Se auth não estiver disponível, redirecionar
-                    alert('Erro ao verificar autenticação. Redirecionando...');
-                    window.location.href = 'login.html';
-                    return;
-                }
-
-                if (!auth.isAuthenticated()) {
-                    alert('Você precisa estar logado para acessar esta página.');
-                    window.location.href = 'login.html';
-                    return;
-                }
-
-                if (!auth.isAdmin()) {
-                    alert('Acesso negado. Apenas administradores podem acessar esta página.');
-                    window.location.href = 'index.html';
-                    return;
-                }
-            }, 100);
+            if (typeof requireAuth === 'function') {
+                requireAuth(true); // redireciona automaticamente se não for admin
+            } else if (typeof auth === 'undefined' || !auth.isAuthenticated() || !auth.isAdmin()) {
+                alert('Acesso negado. Autenticação necessária. Redirecionando...');
+                window.location.href = 'login.html';
+            }
         });
     </script>
-    <script src="js/menu-auth.js"></script>
-    <script src="js/admin.js"></script>
+    <script src="../js/menu-auth.js"></script>
+    <script src="../js/admin.js"></script>
     <script>
         // Mostrar informações do usuário logado após carregar
         document.addEventListener('DOMContentLoaded', () => {
