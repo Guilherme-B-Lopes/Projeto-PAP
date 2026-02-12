@@ -1,17 +1,21 @@
-window.addEventListener('scroll', function() {
-    const divFixa = document.getElementById('divFixa');
+//Menu para todas as pag com o fetch
 
-    if (window.scrollY > 0) {
+    fetch("Menu.html")
+      .then(response => response.text())
+      .then(data => {
+        document.getElementById("menu").innerHTML = data;
         
-        divFixa.classList.add('scroll-menu');
-    } else {
-        
-        divFixa.classList.remove('scroll-menu');
-    }
-});
+        // Disparar evento após carregar o menu
+        document.dispatchEvent(new Event('menuLoaded'));
+      })
+      .catch(error => {
+        console.error('Erro ao carregar menu:', error);
+        document.getElementById("menu").innerHTML = '<p>Erro ao carregar menu</p>';
+      });
+  
 
 // Script para gerenciar o menu baseado no estado de autenticação
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('menuLoaded', () => {
     // Verificar se auth está disponível
     if (typeof auth === 'undefined') {
         console.warn('auth.js não foi carregado. Menu de autenticação não será atualizado.');

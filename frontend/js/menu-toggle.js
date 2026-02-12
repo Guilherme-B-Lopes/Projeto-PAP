@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+function initializeMenuToggle() {
     const nav = document.querySelector('nav');
     const btn = nav && nav.querySelector('.hamburger');
     const menu = nav && nav.querySelector('#main-navigation');
@@ -60,4 +60,16 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.setAttribute('aria-expanded', 'false');
         }
     });
+}
+
+// Aguardar pelo menu ser carregado via fetch
+document.addEventListener('menuLoaded', function() {
+    initializeMenuToggle();
+});
+
+// Também tentar inicializar se o menu já estiver presente (para compatibilidade)
+document.addEventListener('DOMContentLoaded', function () {
+    if (document.querySelector('nav')) {
+        initializeMenuToggle();
+    }
 });
