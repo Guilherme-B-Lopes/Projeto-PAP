@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Projeto - detalhe</title>
+  <link rel="stylesheet" href="../style/style.css">
+  <style>
+    :root{
+        --cor: #ffffff;
+
+    }
+
+    
+    
+    body { background: #000000; }
+     
+    .container { 
+      position: relative;
+      top: 150px;
+      max-width: 1200px;      /* aumenta/diminui se quiseres */
+      width: 100%;
+      margin: 60px auto 0; 
+      padding: 0 16px; 
+    }
+
+    .back { 
+      margin-bottom: 16px; 
+      display:inline-block; 
+      color: var(--cor); 
+      text-decoration:none; 
+    }
+
+    .project-header {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 10rem;
+
+    }
+
+    .project-media img,
+    .project-media iframe,
+    .project-media video { 
+      width:100%; 
+      height:auto; 
+      display:block; 
+      border-radius:8px; 
+    }
+
+    .project-gallery { 
+      margin-top: 20px; 
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      width: 100%;
+      margin-bottom: 20rem;
+    }
+
+    .project-video iframe, 
+    .project-video video { 
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16/9;
+      border-radius: 8px; 
+      display: block; 
+    }
+
+    .thumb-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px; 
+      margin-top: 12px;  
+    }
+
+    .thumb-item {
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      border-radius: 6px;
+    }
+
+    .thumb-item img { 
+      width: 100%; 
+      height: 100%;
+      object-fit: cover;
+      display:block;  
+    }
+
+    .project-meta h1 { 
+      margin:0 0 8px; 
+      font-size: clamp(1.4rem, 2.5vw, 1.8rem); 
+    }
+
+    .project-meta .category {
+      color: var(--cor); 
+      font-size:0.9rem; 
+      margin-bottom:8px; 
+    }
+
+    .project-description { 
+      width: 100%;
+      margin-top:18px; 
+      line-height:1.6;
+      color: var(--cor); 
+      white-space:pre-wrap;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .not-found { 
+      padding:40px; 
+      background: var(--cor);
+      border:1px solid #f5c2c2; 
+      border-radius:8px; 
+    }
+
+    @media (max-width: 1024px) {
+      .project-header {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 0 12px;
+      }
+
+      .project-header {
+        gap: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Menu -->
+  <div id="menu"></div>
+
+  <div class="container">
+    <div id="projectRoot">A carregar...</div>
+  </div>
+
+  <script>
+    (function(){
+      const API_URL = 'http://localhost:3000/api';
+
+      function qs(name) {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(name);
+      }
+
+      async function fetchById(id){
+        try{
+          const res = await fetch(`${API_URL}/projects/${encodeURIComponent(id)}`);
+          if (!res.ok) throw new Error('Não encontrado');
+          return await res.json();
+        } catch(e){
+          console.warn('fetchById falhou', e);
+          return null;
+        }
+      }
+
+      async function fetchAll(){
+        const res = await fetch(`${API_URL}/projects`);
+        if (!res.ok) throw new Error('Erro ao carregar projetos');
+        return await res.json();
+      }
+
+      async function render(){
+        const id = qs('id');
+        const idx = qs('index');
+        let project = null;
+
+        if (id) {
+          project = await fetchById(id);
+          if (!project) {
+            try {
+              const all = await fetchAll();
+              project = all.find(p => {
+                if (!p) return false;
+                const candidates = [p._id, p.id, p._id && p._id.$oid, p._id && p._id['$oid']];
+                return candidates.some(c => c != null && String(c) === String(id));
+              });
+            } catch (e) {
+              console.warn('Fallback search falhou', e);
+            }
+          }
+        }
+
+        if (!project && idx !== null) {
+          const all = await fetchAll();
+          const i = parseInt(idx,10);
+          if (!isNaN(i) && i >=0 && i < all.length) project = all[i];
+        }
+
+        if (!project) {
+          document.getElementById('projectRoot').innerHTML = '<div class="not-found">Projeto não encontrado.</div>';
+          return;
+        }
+
+        const images = Array.isArray(project.images) ? project.images : (project.image ? [project.image] : []);
+        const mainImg = images.length ? images[0] : (project.image || 'https://via.placeholder.com/800x450?text=Sem+imagem');
+        const secondaryImages = images.slice(1);
+
+        const headerHtml = `
+          <div class="project-header">
+            <div class="project-media">
+              <img src="${mainImg}" alt="${project.name || ''}">
+            </div>
+            <div class="project-meta">
+              <div class="category">${project.category ? project.category.charAt(0).toUpperCase() + project.category.slice(1) : ''}</div>
+              <h1 style="color: var(--cor);">${project.name || 'Sem nome'}</h1>
+              <div class="project-description">${project.description ? project.description : '<em>Sem descrição</em>'}</div>
+            </div>
+          </div>
+        `;
+
+        let videoSection = '';
+        if (project.videoUrl) {
+          const isYouTube = /youtube\.com|youtu\.be/.test(project.videoUrl);
+          if (isYouTube) {
+            let embedUrl = project.videoUrl;
+            const match = project.videoUrl.match(/(?:v=|be\/)([A-Za-z0-9_-]{11})/);
+            if (match && match[1]) embedUrl = 'https://www.youtube.com/embed/' + match[1];
+            videoSection = `
+              <div class="project-video">
+                <iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+              </div>`;
+          } else {
+            videoSection = `
+              <div class="project-video">
+                <video controls>
+                  <source src="${project.videoUrl}">
+                </video>
+              </div>`;
+          }
+        }
+
+        let thumbsHtml = '';
+        if (secondaryImages.length) {
+          thumbsHtml = '<div class="thumb-grid">';
+          secondaryImages.forEach(src => {
+            thumbsHtml += `<div class="thumb-item"><img src="${src}" alt="${project.name || ''}"></div>`;
+          });
+          thumbsHtml += '</div>';
+        }
+
+        const galleryHtml = (videoSection || thumbsHtml)
+          ? `<div class="project-gallery">${videoSection}${thumbsHtml}</div>`
+          : '';
+
+        document.getElementById('projectRoot').innerHTML = headerHtml + galleryHtml;
+      }
+
+      render().catch(err=>{
+        console.error(err);
+        document.getElementById('projectRoot').innerHTML = '<div class="not-found">Erro ao carregar projeto.</div>';
+      });
+
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'projectsUpdated') render().catch(console.error);
+      });
+
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          const bc = new BroadcastChannel('projects_channel');
+          bc.onmessage = (m) => {
+            if (m.data === 'projectsUpdated') render().catch(console.error);
+          };
+        }
+      } catch (e) {
+        console.warn('BroadcastChannel não disponível:', e);
+      }
+    })();
+  </script>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/menu-auth.js"></script>
+  <script src="../js/menu-toggle.js"></script>
+</body>
+</html>

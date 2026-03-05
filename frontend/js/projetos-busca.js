@@ -229,6 +229,29 @@ async function loadProjects() {
     }
 }
 
+// Escutar sinal de outras abas/janelas para recarregar projetos quando atualizados
+window.addEventListener('storage', (e) => {
+    if (e.key === 'projectsUpdated') {
+        console.log('[projetos-busca] Detected projectsUpdated via storage, reloading projects');
+        loadProjects();
+    }
+});
+
+// BroadcastChannel fallback for modern browsers (same-origin)
+try {
+    if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('projects_channel');
+        bc.onmessage = (m) => {
+            if (m.data === 'projectsUpdated') {
+                console.log('[projetos-busca] Detected projectsUpdated via BroadcastChannel, reloading projects');
+                loadProjects();
+            }
+        };
+    }
+} catch (e) {
+    console.warn('[projetos-busca] BroadcastChannel não disponível:', e);
+}
+
 // Função de busca
 function handleSearch() {
     const searchTerm = searchInput.value.toLowerCase().trim();
@@ -345,22 +368,36 @@ function renderProjects() {
             }
             
             projectItem.innerHTML = `
-                <div class="project-thumb" style="display: block;">
-                    <img src="${thumbSrc}" alt="${project.name || 'Projeto'}" style="display: block; width: 100%;" onerror="this.src='https://via.placeholder.com/300x200/cccccc/666666?text=Erro+na+Imagem'">
-                    <span class="badge">${project.category || ''}</span>
+                <div class="project-thumb">
+                    <img src="${thumbSrc}" alt="${project.name || 'Projeto'}" onerror="this.src='https://via.placeholder.com/600x400/cccccc/666666?text=Erro+na+Imagem'">
+                    <div class="project-label">
+                        <div class="project-category">${project.category || ''}</div>
+                        <div class="project-name">${project.name || 'Sem nome'}</div>
+                    </div>
                 </div>
-                <div class="project-info" style="display: block;">
-                    <h3>${project.name || 'Sem nome'}</h3>
-                    <p class="turma">Turma: ${project.turma || '-'}</p>
-                </div>
+                <div class="project-info" style="display:none;"></div>
             `;
             
             projectGrid.appendChild(projectItem);
             renderedCount++;
             
-            // Event listener para abrir modal
+            // Event listener: navegar para página de detalhe do projeto (id se existir, senão index)
+            const rawId = project._id || project.id;
+            let projectId = undefined;
+            if (rawId !== undefined && rawId !== null) {
+                if (typeof rawId === 'object') {
+                    projectId = rawId.$oid || rawId['$oid'] || String(rawId);
+                } else {
+                    projectId = String(rawId);
+                }
+            }
+            projectItem.setAttribute('data-project-id', projectId !== undefined ? projectId : index);
             projectItem.addEventListener('click', () => {
-                openModalByIndex(index);
+                if (projectId !== undefined) {
+                    window.location.href = `projeto.html?id=${encodeURIComponent(projectId)}`;
+                } else {
+                    window.location.href = `projeto.html?index=${index}`;
+                }
             });
         } catch (error) {
             console.error(`[projetos-busca] Erro ao renderizar projeto ${index}:`, error);

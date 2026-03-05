@@ -10,8 +10,8 @@ const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3000; // Porta do servidor, ou 3000 por padrão
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/test'; // URI do MongoDB
-const JWT_SECRET = process.env.JWT_SECRET || 'seu_secret_key_super_seguro_aqui_mude_em_producao'; // Secret para JWT
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://a30945_db_user:6Db5TjhyD5FENsiV@pap.0oyiile.mongodb.net/?appName=PAP'; // URI do MongoDB
+const JWT_SECRET = process.env.JWT_SECRET || 'Guilherme8151'; // Secret para JWT
 
 // Criar diretórios de upload se não existirem
 const uploadDirs = {
@@ -172,19 +172,63 @@ app.get('/api/projects', async (req, res) => {
 
 
 // PUT (atualizar) um projeto por ID - Apenas admin
-app.put('/api/projects/:id', authenticateToken, requireAdmin, async (req, res) => {
-    try {
-        const body = { ...req.body };
-        if (!Array.isArray(body.images)) {
-            if (body.image) {
-                body.images = [body.image];
-                delete body.image;
+// Middleware que tenta processar multipart, mas continua se não for multipart
+const optionalMultipart = (req, res, next) => {
+    const contentType = req.get('content-type') || '';
+    if (contentType.includes('multipart/form-data')) {
+        upload.fields([
+            { name: 'images', maxCount: 10 },
+            { name: 'video', maxCount: 1 }
+        ])(req, res, (err) => {
+            if (err) {
+                console.error('[optionalMultipart] Erro ao processar multer:', err);
+                return res.status(400).json({ message: 'Erro ao processar ficheiros: ' + err.message });
             }
+            next();
+        });
+    } else {
+        next();
+    }
+};
+
+app.put('/api/projects/:id', authenticateToken, requireAdmin, optionalMultipart, async (req, res) => {
+    try {
+        console.log('[PUT /api/projects/:id] Atualizando projeto...');
+        console.log('[PUT /api/projects/:id] Content-Type:', req.get('content-type'));
+        console.log('[PUT /api/projects/:id] Body:', req.body);
+        console.log('[PUT /api/projects/:id] Files:', req.files);
+
+        const project = await Project.findById(req.params.id);
+        if (!project) {
+            return res.status(404).json({ message: 'Projeto não encontrado' });
         }
-        const updatedProject = await Project.findByIdAndUpdate(req.params.id, body, { new: true });
-        if (!updatedProject) return res.status(404).json({ message: 'Projeto não encontrado' });
+
+        // Atualizar campos básicos
+        if (req.body.name) project.name = req.body.name;
+        if (req.body.turma) project.turma = req.body.turma;
+        if (req.body.category) project.category = req.body.category;
+        if (req.body.description) project.description = req.body.description;
+
+        // Processar imagens (apenas se novos ficheiros forem enviados)
+        if (req.files && req.files.images && req.files.images.length > 0) {
+            console.log('[PUT /api/projects/:id] Novos arquivos de imagem recebidos:', req.files.images.length);
+            const newImages = req.files.images.map(file => `/uploads/images/${file.filename}`);
+            project.images = newImages;
+            project.image = newImages[0]; // Atualizar imagem de capa
+            console.log('[PUT /api/projects/:id] Imagens atualizadas:', newImages);
+        }
+
+        // Processar vídeo (apenas se novo ficheiro for enviado)
+        if (req.files && req.files.video && req.files.video.length > 0) {
+            project.videoUrl = `/uploads/videos/${req.files.video[0].filename}`;
+            console.log('[PUT /api/projects/:id] Vídeo atualizado:', project.videoUrl);
+        }
+
+        const updatedProject = await project.save();
+        console.log('[PUT /api/projects/:id] Projeto atualizado com sucesso:', updatedProject._id);
         res.json(updatedProject);
     } catch (err) {
+        console.error('[PUT /api/projects/:id] Erro ao atualizar projeto:', err);
         res.status(400).json({ message: err.message });
     }
 });

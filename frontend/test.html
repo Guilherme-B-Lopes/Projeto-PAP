@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animação de Texto</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #111;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    h1 {
+        font-size: 2rem;
+        border-right: 3px solid #fff;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+</style>
+</head>
+<body>
+
+<h1 id="animated-text"></h1>
+
+<script>
+(function() {
+    const frases = [
+        "Bem-vindo ao meu site!",
+        "Criando animações com JavaScript...",
+        "Texto que muda automaticamente.",
+        "Efeito máquina de escrever!"
+    ];
+
+    let fraseIndex = 0;
+    let charIndex = 0;
+    let apagando = false;
+    const velocidade = 100; // Velocidade de digitação
+    const pausa = 1500; // Pausa antes de apagar
+
+    const elemento = document.getElementById("animated-text");
+
+    function animarTexto() {
+        const fraseAtual = frases[fraseIndex];
+
+        if (!apagando) {
+            // Escrevendo
+            elemento.textContent = fraseAtual.substring(0, charIndex + 1);
+            charIndex++;
+
+            if (charIndex === fraseAtual.length) {
+                apagando = true;
+                setTimeout(animarTexto, pausa);
+                return;
+            }
+        } else {
+            // Apagando
+            elemento.textContent = fraseAtual.substring(0, charIndex - 1);
+            charIndex--;
+
+            if (charIndex === 0) {
+                apagando = false;
+                fraseIndex = (fraseIndex + 1) % frases.length;
+            }
+        }
+
+        setTimeout(animarTexto, apagando ? velocidade / 2 : velocidade);
+    }
+
+    animarTexto();
+})();
+</script>
+
+</body>
+</html>

@@ -6,6 +6,9 @@
     <title>CURSOS PROFICIONAIS AEB</title>
     <link rel="stylesheet" href="../style/style.css">
     <style>
+    body{
+        background: radial-gradient(circle at top left, #020617, #020617 55%, #0b1120);
+    }
         /* Animações para modais */
         @keyframes fadeIn {
             from {
@@ -29,7 +32,7 @@
         /* Estilos adicionais específicos para a página de administração (mantidos e ajustados) */
         .admin-section {
             padding: 100px 0 60px; /* Ajuste para o menu fixo */
-            background: #f9f9f9;
+            
             min-height: calc(100vh - 150px);
         }
         .admin-section h2 {
@@ -53,6 +56,15 @@
             border: 1px solid #ddd;
             text-align: left;
             vertical-align: middle;
+        }
+
+        /* Apenas o conteúdo da coluna Descrição deve permitir quebra de palavra longa
+           isto evita que os cabeçalhos e outros títulos mudem de comportamento */
+        .project-management-table td[data-label="Descrição"] {
+            overflow-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+            max-width: 600px;
         }
         .project-management-table th {
             background-color: #333;
@@ -175,6 +187,9 @@
             min-height: 100px;
             resize: vertical;
             font-family: inherit;
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-break: break-word ;
         }
         .edit-modal-content .form-group select {
             background-color: white;
@@ -300,7 +315,7 @@
             text-align: center;
             margin-bottom: 1.5rem;
             font-size: 2rem;
-            color: #333;
+            color: white;
         }
         .event-form-container {
             max-width: 600px;
@@ -653,7 +668,7 @@
     <!-- Administração -->
 <section class="admin-section">
     <div class="container">
-        <h2>Administração de Projetos</h2>  
+        <h2 style="color: white;">Administração de Projetos</h2>  
         <table class="project-management-table"> <!-- Mudança: class="product-management-table" → "project-management-table" -->
             <thead>
                 <tr>
@@ -702,9 +717,18 @@
                 <textarea id="editProjectDescription" required></textarea>
             </div>
             <div class="form-group">
-                <label for="editProjectImage">URL da Imagem:</label>
-                <input type="url" id="editProjectImage" required>
+                <label for="editProjectImages">Imagens (substituir):</label>
+                <input type="file" id="editProjectImages" accept="image/*" multiple>
+                <div id="editProjectImagesPreview" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;"></div>
+                <small style="display:block;margin-top:6px;color:#666;">Enviar imagens a partir do seu dispositivo substituirá as imagens atuais.</small>
             </div>
+            <div class="form-group">
+                <label for="editProjectVideo">Vídeo (opcional):</label>
+                <input type="file" id="editProjectVideo" accept="video/*">
+                <div id="editProjectVideoPreview" style="margin-top:8px;"></div>
+                <small style="display:block;margin-top:6px;color:#666;">Enviar um ficheiro de vídeo do seu dispositivo (MP4/WEBM).</small>
+            </div>
+            <!-- Campo de URL da imagem removido conforme pedido (usar upload apenas) -->
             <div class="modal-actions">
                 <button type="submit" class="save-btn">Salvar Alterações</button>
                 <button type="button" class="cancel-btn close-edit-modal">Cancelar</button>
@@ -716,7 +740,7 @@
         <!-- Gestor de Utilizadores -->
     <section class="admin-section users-management-section">
         <div class="container">
-            <h3>Gestor de Utilizadores</h3>
+            <h3 style="color: white;">Gestor de Utilizadores</h3>
 
             <!-- Tabela de Gestor de Utilizadores -->
             <table class="users-management-table">
@@ -774,7 +798,7 @@
                     <!--Gestor de Eventos -->
     <section class="admin-section event-management-section">
         <div class="container">
-            <h3>Gestor de Eventos</h3>
+            <h3 style="color: white;">Gestor de Eventos</h3>
 
             <div class="event-form-container">
                 <h4>Adicionar/Editar Evento</h4>

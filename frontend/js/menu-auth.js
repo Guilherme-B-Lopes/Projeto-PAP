@@ -164,7 +164,7 @@ document.addEventListener('menuLoaded', () => {
             userInfoItem.id = 'userInfo';
             const span = document.createElement('span');
             span.textContent = user.username;
-            span.style.color = '#FCA311';
+            span.style.color = '#22c55e';
             span.style.marginRight = '1rem';
             userInfoItem.appendChild(span);
             
@@ -185,3 +185,94 @@ document.addEventListener('menuLoaded', () => {
     }
 });
 
+// Menu toggle
+function initializeMenuToggle() {
+    const nav = document.querySelector('nav');
+    const btn = nav && nav.querySelector('.hamburger');
+    const menu = nav && nav.querySelector('#main-navigation');
+
+    if (!nav || !btn || !menu) return;
+
+    btn.addEventListener('click', function () {
+        const isOpen = nav.classList.toggle('open');
+        btn.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    // --- Lógica do Submenu (Mobile) ---
+    const submenuToggles = document.querySelectorAll('.submenu-toggle');
+    
+    submenuToggles.forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Impede que o clique feche o menu principal
+            
+            const parent = toggle.closest('.submenu-parent');
+            const isOpen = parent.classList.toggle('open');
+            toggle.setAttribute('aria-expanded', String(isOpen));
+            console.log('Submenu toggle clicked. isOpen:', isOpen, 'parent:', parent);
+        });
+    });
+
+    // Fecha ao clicar num link (mobile) - EXCETO links do submenu
+    menu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            // Se for um link dentro do submenu, não fechar o menu principal
+            if (link.closest('.submenu')) {
+                return;
+            }
+            
+            if (nav.classList.contains('open')) {
+                nav.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+
+    // Fechar submenu ao clicar num link dentro dele
+    document.querySelectorAll('.submenu a').forEach(link => {
+        link.addEventListener('click', () => {
+            document.querySelectorAll('.submenu-parent').forEach(parent => {
+                parent.classList.remove('open');
+            });
+            submenuToggles.forEach(toggle => {
+                toggle.setAttribute('aria-expanded', 'false');
+            });
+        });
+    });
+
+    // Fecha ao clicar fora do nav
+    document.addEventListener('click', (e) => {
+        if (!nav.classList.contains('open')) return;
+        if (!nav.contains(e.target)) {
+            nav.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // --- Mudar fundo do menu ao fazer scroll (desktop e mobile) ---
+    const SCROLL_THRESHOLD = 50; // px
+
+    function updateNavOnScroll() {
+        if (window.scrollY > SCROLL_THRESHOLD) {
+            nav.classList.add('scrolled');
+        } else {
+            nav.classList.remove('scrolled');
+        }
+    }
+
+    // Atualiza imediatamente (caso a página abra já com scroll)
+    updateNavOnScroll();
+    window.addEventListener('scroll', updateNavOnScroll);
+}
+
+// Aguardar pelo menu ser carregado via fetch
+document.addEventListener('menuLoaded', function() {
+    initializeMenuToggle();
+});
+
+// Também tentar inicializar se o menu já estiver presente (para compatibilidade)
+document.addEventListener('DOMContentLoaded', function () {
+    if (document.querySelector('nav')) {
+        initializeMenuToggle();
+    }
+});

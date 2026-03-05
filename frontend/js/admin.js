@@ -87,7 +87,40 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('editProjectTurma').value = project.turma; // Novo: turma
         document.getElementById('editProjectCategory').value = project.category; // Novo: categoria
         document.getElementById('editProjectDescription').value = project.description;
-        document.getElementById('editProjectImage').value = project.image;
+        // Preencher previews de imagens e vídeo existentes
+        const imagesPreview = document.getElementById('editProjectImagesPreview');
+        const videoPreview = document.getElementById('editProjectVideoPreview');
+        imagesPreview.innerHTML = '';
+        videoPreview.innerHTML = '';
+        if (Array.isArray(project.images) && project.images.length) {
+            project.images.forEach(src => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.alt = project.name;
+                img.style.width = '80px';
+                img.style.height = '60px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '4px';
+                imagesPreview.appendChild(img);
+            });
+        } else if (project.image) {
+            const img = document.createElement('img');
+            img.src = project.image;
+            img.alt = project.name;
+            img.style.width = '80px';
+            img.style.height = '60px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '4px';
+            imagesPreview.appendChild(img);
+        }
+        if (project.videoUrl) {
+            const vid = document.createElement('video');
+            vid.src = project.videoUrl;
+            vid.controls = true;
+            vid.style.maxWidth = '200px';
+            vid.style.display = 'block';
+            videoPreview.appendChild(vid);
+        }
 
         editProjectModal.style.display = 'block';
         document.body.style.overflow = 'hidden'; // Impede o scroll do body
@@ -123,37 +156,137 @@ document.addEventListener('DOMContentLoaded', () => {
         const turma = document.getElementById('editProjectTurma').value; // Novo: turma
         const category = document.getElementById('editProjectCategory').value; // Novo: categoria
         const description = document.getElementById('editProjectDescription').value;
-        const image = document.getElementById('editProjectImage').value;
+        const imageFiles = document.getElementById('editProjectImages').files;
+        const videoFile = document.getElementById('editProjectVideo').files[0];
 
-        if (!name || !turma || !category || !description || !image) {
-            alert('Por favor, preencha todos os campos obrigatórios!');
+        if (!name || !turma || !category || !description) {
+            alert('Por favor, preencha os campos obrigatórios: nome, turma, categoria e descrição!');
             return;
         }
 
-        const updatedProjectData = { name, turma, category, description, image };
+        const currentProject = projects.find(p => p._id === projectId) || {};
 
+        // Decide se vamos usar multipart/form-data (se houver ficheiros) ou JSON
+        const hasFiles = (imageFiles && imageFiles.length > 0) || !!videoFile;
+        console.log('[Editar Projeto] ID:', projectId, 'HasFiles:', hasFiles, 'ImageFiles:', imageFiles?.length, 'VideoFile:', !!videoFile);
+        
         try {
-            const response = await fetchWithAuth(`${API_URL}/projects/${projectId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(updatedProjectData)
-            });
+            let response;
+            if (hasFiles) {
+                console.log('[Editar Projeto] Enviando FormData com ficheiros...');
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('turma', turma);
+                formData.append('category', category);
+                formData.append('description', description);
+                // image URL input removed: only files/uploads are sent
+                // Append image files
+                if (imageFiles && imageFiles.length) {
+                    for (let i = 0; i < imageFiles.length; i++) {
+                        formData.append('images', imageFiles[i]);
+                    }
+                }
+                // Append video file
+                if (videoFile) {
+                    formData.append('video', videoFile);
+                }
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // Build headers from auth but remove Content-Type so browser sets boundary
+                const headers = auth && typeof auth.getAuthHeaders === 'function' ? auth.getAuthHeaders() : {};
+                if (headers['Content-Type']) delete headers['Content-Type'];
+                if (headers['content-type']) delete headers['content-type'];
+
+                console.log('[Editar Projeto] Headers:', headers);
+                response = await fetch(`${API_URL}/projects/${projectId}`, {
+                    method: 'PUT',
+                    headers,
+                    body: formData
+                });
+            } else {
+                // No files: send JSON. Prefer explicit imageUrl, otherwise keep existing image
+                console.log('[Editar Projeto] Enviando apenas dados JSON (sem ficheiros)...');
+                const imageToSend = currentProject.image || '';
+                const updatedProjectData = { name, turma, category, description, image: imageToSend };
+                console.log('[Editar Projeto] Dados:', updatedProjectData);
+
+                response = await fetchWithAuth(`${API_URL}/projects/${projectId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedProjectData)
+                });
             }
 
-            const updatedProject = await response.json();
+            console.log('[Editar Projeto] Response status:', response.status);
+            if (!response.ok) {
+                const errText = await response.text().catch(() => '');
+                console.error('[Editar Projeto] Erro response:', errText);
+                throw new Error(`HTTP error! status: ${response.status} ${errText}`);
+            }
+
+            // Try to parse JSON response if any
+            let updatedProject = null;
+            try { updatedProject = await response.json(); } catch (e) { /* ignore */ }
+            console.log('[Editar Projeto] Sucesso! Projeto atualizado:', updatedProject);
             alert('Projeto atualizado com sucesso!');
             closeEditModal();
+            try {
+                localStorage.setItem('projectsUpdated', Date.now().toString());
+            } catch (e) {
+                console.warn('Não foi possível escrever em localStorage:', e);
+            }
+            try {
+                if (typeof BroadcastChannel !== 'undefined') {
+                    const bc = new BroadcastChannel('projects_channel');
+                    bc.postMessage('projectsUpdated');
+                    bc.close();
+                }
+            } catch (e) {
+                console.warn('BroadcastChannel não disponível:', e);
+            }
             loadProjects(); // Recarrega a lista de projetos
         } catch (error) {
             console.error('Erro ao atualizar projeto:', error);
-            alert('Erro ao atualizar projeto. Verifique o console para mais detalhes.');
+            alert('Erro ao atualizar projeto: ' + error.message);
         }
     });
+
+    // Previews para inputs de ficheiros
+    const imagesInput = document.getElementById('editProjectImages');
+    const videoInput = document.getElementById('editProjectVideo');
+    if (imagesInput) {
+        imagesInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            const preview = document.getElementById('editProjectImagesPreview');
+            preview.innerHTML = '';
+            if (files && files.length) {
+                Array.from(files).forEach(f => {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(f);
+                    img.style.width = '80px';
+                    img.style.height = '60px';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '4px';
+                    preview.appendChild(img);
+                });
+            }
+        });
+    }
+    if (videoInput) {
+        videoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const preview = document.getElementById('editProjectVideoPreview');
+            preview.innerHTML = '';
+            if (file) {
+                const vid = document.createElement('video');
+                vid.src = URL.createObjectURL(file);
+                vid.controls = true;
+                vid.style.maxWidth = '240px';
+                preview.appendChild(vid);
+            }
+        });
+    }
 
     // Função para excluir um projeto
     async function deleteProject(projectId) {

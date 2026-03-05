@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="../style/style.css">
     <style>
         /* Estilos adicionais para o cadastro (deu perguica de colacar em pastas separadas)*/
+        
         .cadastro-section {
             padding: 100px 0 60px; 
             text-align: center;
-            background: #f9f9f9;
+            background: radial-gradient(circle at top left, #020617, #020617 55%, #0b1120);
             min-height: calc(100vh - 150px); /*linha de merda*/
         }
         
@@ -65,10 +66,12 @@
             border-radius: 5px;
             cursor: pointer;
             margin-right: 0.5rem;
-            transition: background 0.3s;
+            transition: all 0.6s;
         }
         .form-group input[type="file"]::file-selector-button:hover {
-            background: #FCA311;
+            background: radial-gradient(circle at top left, #22c55e, #e9e90e);
+            color: white;
+            box-shadow: 0 18px 45px rgba(56, 189, 248, 0.45);
         }
         /*tira o contorno pretot*/
         input, textarea, select{
@@ -77,34 +80,42 @@
         .form-group textarea {
             height: 120px;
             resize: vertical; 
+            /* Quebrar linhas longas e preservar quebras de linha do utilizador */
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
         .btn-submit {
             background: #E5E5E5;
-            color: white;
+            color: rgb(74, 74, 74);
             padding: 1rem 2rem;
             border: none;
             border-radius: 5px;
             font-size: 1.1rem;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.6s;
             margin-top: 1rem;
         }
         .btn-submit:hover {
-            background: #FCA311;
+            background: radial-gradient(circle at top left, #22c55e, #e9e90e);
+            color: white;
+            box-shadow: 0 18px 45px rgba(56, 189, 248, 0.45);
         }
         .btn-back {
             background: #E5E5E5;
-            color: white;
+            color: rgb(74, 74, 74);
             padding: 0.8rem 1.5rem;
             border: none;
             border-radius: 5px;
             text-decoration: none;
             display: inline-block;
             margin-top: 1rem;
-            transition: background 0.3s;
+            transition: all 0.6s;
         }
         .btn-back:hover {
-            background: #000000;
+            background: radial-gradient(circle at top left, #22c55e, #3792d3);
+            color: rgb(255, 255, 255);
+            box-shadow: 0 18px 45px rgba(69, 192, 244, 0.45);
         }
         .form-group input, textarea, select{
             transition: 0.5s;
@@ -128,7 +139,7 @@
 </head>
 <body>
     <!-- Menu -->
-    <div id="menu"></div>
+    <div id="menu" background-color: #0000007a;></div>
 
     <!-- Seção de Cadastro -->
 <section class="cadastro-section">
@@ -195,8 +206,9 @@
     </footer>
 
     <script src="../js/auth.js"></script>
+    <script src="../js/cadastro.js"></script>
     <script src="../js/menu-auth.js"></script>
-    <script src="../js/cadastroProj.js"></script>
+    <script src="../js/menu-toggle.js"></script>
     
 </body>
 </html>

@@ -6,16 +6,51 @@
     <title>CURSOS PROFICIONAIS AEB</title>
     <link rel="stylesheet" href="../style/style.css">
     <style>
+        body {
+            background: radial-gradient(circle at top left, #020617, #020617 55%, #0b1120);
+            color: #e5e7eb;
+        }
+
+        /* Texto principal em cima do slideshow */
+        .hero-title-wrapper {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
         h1.ini{
             text-align: center;
-            margin-top: 40px;
-            color: #ffffff;
+            color: #f9fafb;
+            text-decoration: none;
+            font-size: clamp(2.4rem, 4vw, 3.6rem);
+            letter-spacing: -0.05em;
+            font-weight: 700;
+            text-shadow: 0 22px 70px rgba(15, 23, 42, 0.9);
+            pointer-events: auto;
+        }
+
+        .hero::after {
+            content: '';
             position: absolute;
-            text-decoration: dashed;
-            font-size: 80px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.55), transparent 45%, rgba(15, 23, 42, 0.95));
+            pointer-events: none;
+        }
+
+        .main-content {
+            padding: 60px 0 80px;
+        }
+
+        .main-content .container {
+            max-width: 960px;
+        }
+
+        .main-content p {
+            color: #e5e7eb;
+            text-align: justify;
         }
     </style>
 </head>
@@ -26,50 +61,32 @@
 
     <!-- Imagens com Slideshow -->
     <section class="hero" id="home">
-    
         <div class="slideshow">
             <div class="slide active">
-                <img src="imagens/DSC_7903.JPG" alt="Slide 1">
+                <img src="../imagens/1.jpg" alt="Slide 1">
             </div>
             <div class="slide">
-                <img src="imagens/338612504_561464342746759_4538131836186623551_n.jpg" alt="Slide 2">
+                <img src="../imagens/2.jpg" alt="Slide 2">
             </div>
             <div class="slide">
-                <img src="imagens/IMG_20241108_145316.jpg" alt="Slide 3">
+                <img src="../imagens/3.jpg" alt="Slide 3">
             </div>
         </div>
-      
+        <div class="hero-title-wrapper">
+            <h1 class="ini" id="texto-animado"></h1>
+        </div>
     </section>
 
     <!-- Introducao -->
     <section class="main-content">
         <div class="container">
-            <h1 class="ini"><strong>Bem-vindo</strong></h1>
             <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate a temporibus eius nemo tempora quidem autem facilis. Ipsa beatae explicabo voluptatibus suscipit? Iusto enim magnam quidem deleniti, praesentium placeat? Illo!</p>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloremque a exercitationem accusamus ratione </p>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloremque a exercitationem accusamus ratione.</p>
+            <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Quasi quam repellat aliquid hic provident libero dolores rem ab aliquam exercitationem modi officia numquam sint facere odio, eum architecto soluta magni.lorem Lorem ipsum dolor sit amet consectetur adipisicing elit. Velit ipsa quibusdam soluta sed voluptatibus mollitia nobis quos corporis fuga ab sint molestiae quas, consequuntur odio, officiis consectetur dignissimos quisquam eaque?</p>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Facere, inventore repellendus facilis non tempora cum ut incidunt expedita illum, molestias necessitatibus. Corporis velit tenetur exercitationem temporibus. Id aut eaque facilis.</p>
         </div>
-         <div class="projects-section">
-                <div class="project-grid" id="projectGrid" style="display: grid; visibility: visible; opacity: 1;">
-                    <!-- Projetos carregados aqui -->
-                </div>
-            </div>
     </section>
-
-<!-- Modal para Detalhes do Projeto -->
-<div id="projectModal" class="modal"> 
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <div class="modal-header">
-            <h2 id="modalTitle"></h2>
-        </div>
-        <div class="modal-body">
-            <img id="modalImage" src="" alt="">
-            <p id="modalTurma" class="turma"></p> 
-            <p id="modalCategory" class="category"></p> 
-            <p id="modalDescription" class="description"></p>
-        </div>
-    </div>
-</div>
+       
 
     <!-- Rodapé -->
     <footer id="contato">
@@ -81,12 +98,11 @@
             <p>&copy; Cursos Profissionais. Agrupamento de Escolas do Bonfim</p>
         </div>
     </footer>
-
+    
     
     <script src="../js/auth.js"></script>
     <script src="../js/menu-auth.js"></script>
-    <script src="../js/menu-toggle.js"></script>
     <script src="../js/animatio.js"></script>
-    <script src="../js/projetos-busca.js"></script>
+    
 </body>
 </html>

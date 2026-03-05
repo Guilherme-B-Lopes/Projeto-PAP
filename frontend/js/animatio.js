@@ -168,3 +168,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Animação de texto tipo máquina de escrever no titulo da introdução
+ (function() {
+            const frases = [ "Bem-vindo ao CPAEB", "Exploração de Projetos", "Ferramentas de Estudo", "Recursos para Alunos"
+                ];
+
+            let fraseIndex = 0;
+            let charIndex = 0;
+            let apagando = false;
+            const velocidade = 100; // Velocidade de digitação
+            const pausa = 1500; // Pausa antes de apagar
+
+            const elemento = document.getElementById("texto-animado");
+
+            function animarTexto() {
+            const fraseAtual = frases[fraseIndex];
+
+            if (!apagando) {
+                // Escrevendo
+                elemento.textContent = fraseAtual.substring(0, charIndex + 1);
+                charIndex++;
+
+            if (charIndex === fraseAtual.length) {
+                apagando = true;
+                setTimeout(animarTexto, pausa);
+                return;
+            }
+            } else {
+                // Apagando
+                    elemento.textContent = fraseAtual.substring(0, charIndex - 1);
+                    charIndex--;
+
+                if (charIndex === 0) {
+                    apagando = false;
+                    fraseIndex = (fraseIndex + 1) % frases.length;
+            }
+            }
+
+        setTimeout(animarTexto, apagando ? velocidade / 2 : velocidade);
+    }
+
+            animarTexto();
+        })();
