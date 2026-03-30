@@ -747,8 +747,14 @@ app.post('/api/auth/create-admin', async (req, res) => {
 
 // Servir arquivos estáticos do frontend (assets) e views HTML
 // IMPORTANTE: Isso deve vir DEPOIS das rotas da API
-const frontendStatic = path.join(__dirname, '../frontend');
-const frontendViews = path.join(__dirname, '../frontend/views');
+const publicFrontendStatic = path.join(__dirname, '../public_frontend');
+const publicFrontendViews = path.join(publicFrontendStatic, 'views');
+const legacyFrontendStatic = path.join(__dirname, '../frontend');
+const legacyFrontendViews = path.join(legacyFrontendStatic, 'views');
+
+// Preferir "public_frontend" (hospedagem), com fallback para "frontend" (dev/local)
+const frontendStatic = fs.existsSync(publicFrontendStatic) ? publicFrontendStatic : legacyFrontendStatic;
+const frontendViews = fs.existsSync(publicFrontendViews) ? publicFrontendViews : legacyFrontendViews;
 
 // CSS e JS (paths explícitos, compatíveis com hospedagem)
 app.use('/style', express.static(path.join(frontendStatic, 'style')));
