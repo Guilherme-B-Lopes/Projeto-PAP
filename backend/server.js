@@ -28,6 +28,8 @@ const db = mysql.createPool({
     queueLimit: 0
 });
 
+let dbReady = false;
+
 // Criar diretórios de upload se não existirem
 const uploadDirs = {
     images: path.join(__dirname, '../uploads/images'),
@@ -162,6 +164,16 @@ const initDatabase = async () => {
         )
     `);
 };
+
+// Se a BD não estiver pronta, proteger as rotas /api (mas manter o site no ar)
+app.use('/api', (req, res, next) => {
+    if (!dbReady) {
+        return res.status(503).json({
+            message: 'Serviço temporariamente indisponível (base de dados não ligada).'
+        });
+    }
+    next();
+});
 
 // 2. Middlewares
 app.use(cors()); // Permite requisições de diferentes origens (seu frontend)
@@ -881,35 +893,38 @@ app.get(/.*/, (req, res) => {
 
 // 6. Iniciar o servidor
 const startServer = async () => {
+    // Arrancar o servidor SEM depender da BD, para evitar 503 da plataforma
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Servidor rodando na porta ${PORT}`);
+        console.log(`Frontend assets: ${frontendStatic}`);
+        console.log(`Frontend views (HTML): ${frontendViews}`);
+    });
+
     try {
         await initDatabase();
+        dbReady = true;
         console.log(`Conectado ao MySQL em ${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}`);
-        app.listen(PORT, '0.0.0.0', () => {
-            console.log(`Servidor rodando na porta ${PORT}`);
-            console.log(`Frontend assets: ${frontendStatic}`);
-            console.log(`Frontend views (HTML): ${frontendViews}`);
-            console.log(`Acesse: http://localhost:${PORT}`);
-        });
     } catch (err) {
+        dbReady = false;
         if (err && err.code === 'ECONNREFUSED') {
             console.error(
-                `Erro ao inicializar MySQL: ligação recusada em ${MYSQL_HOST}:${MYSQL_PORT}. ` +
-                'Confirma se o servidor MySQL está em execução e se a porta no .env está correta.'
+                `MySQL: ligação recusada em ${MYSQL_HOST}:${MYSQL_PORT}. ` +
+                'Confirma host/porta nas variáveis de ambiente.'
             );
         } else if (err && err.code === 'ER_ACCESS_DENIED_ERROR') {
             console.error(
-                `Erro ao inicializar MySQL: acesso negado para o utilizador "${MYSQL_USER}". ` +
-                'Verifica MYSQL_USER e MYSQL_PASSWORD no .env.'
+                `MySQL: acesso negado para o utilizador "${MYSQL_USER}". ` +
+                'Verifica MYSQL_USER e MYSQL_PASSWORD.'
             );
         } else if (err && err.code === 'ER_BAD_DB_ERROR') {
             console.error(
-                `Erro ao inicializar MySQL: a base de dados "${MYSQL_DATABASE}" não existe. ` +
-                'Cria a base ou atualiza MYSQL_DATABASE no .env.'
+                `MySQL: a base de dados "${MYSQL_DATABASE}" não existe. ` +
+                'Cria a base ou atualiza MYSQL_DATABASE.'
             );
         } else {
-            console.error('Erro ao inicializar MySQL:', err);
+            console.error('MySQL: erro ao inicializar:', err);
         }
-        process.exit(1);
+        // Não sair do processo: mantém o frontend a servir e /api devolve 503
     }
 };
 
