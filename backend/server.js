@@ -749,11 +749,26 @@ app.post('/api/auth/create-admin', async (req, res) => {
 // IMPORTANTE: Isso deve vir DEPOIS das rotas da API
 const frontendStatic = path.join(__dirname, '../frontend');
 const frontendViews = path.join(__dirname, '../frontend/views');
+
+// CSS e JS (paths explícitos, compatíveis com hospedagem)
+app.use('/style', express.static(path.join(frontendStatic, 'style')));
+app.use('/js', express.static(path.join(frontendStatic, 'js')));
+
+// Outros assets (imagens, etc.)
 app.use(express.static(frontendStatic));
 
 // Rota para a página inicial do frontend (arquivo HTML nas views)
 app.get('/', (req, res) => {
     res.sendFile(path.join(frontendViews, 'index.html'));
+});
+
+// Página opcional "/about" (só se existir o ficheiro)
+app.get('/about', (req, res) => {
+    const aboutPath = path.join(frontendViews, 'about.html');
+    if (fs.existsSync(aboutPath)) {
+        return res.sendFile(aboutPath);
+    }
+    return res.status(404).json({ message: 'Página about não encontrada' });
 });
 
 // Redirecionar .htm para .html (compatibilidade) - DEVE VIR ANTES DO MIDDLEWARE DE ERRO
