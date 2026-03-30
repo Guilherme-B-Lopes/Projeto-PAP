@@ -1,11 +1,11 @@
 -- Projeto PAP - Inicialização MySQL
 -- Executa este script para criar a base e as tabelas necessárias.
 
-CREATE DATABASE IF NOT EXISTS pap
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
+--CREATE DATABASE IF NOT EXISTS pap
+--  CHARACTER SET utf8mb4
+--  COLLATE utf8mb4_unicode_ci;
 
-USE pap;
+USE u775111359_pap;
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,

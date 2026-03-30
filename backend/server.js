@@ -14,7 +14,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'Guilherme8151'; // Secret para JWT
 const MYSQL_HOST = process.env.MYSQL_HOST || 'localhost';
 const MYSQL_PORT = Number(process.env.MYSQL_PORT || 3306);
 const MYSQL_USER = process.env.MYSQL_USER || 'root';
-const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD || '';
+const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD || 'Guilherme8151';
 const MYSQL_DATABASE = process.env.MYSQL_DATABASE || 'pap';
 
 const db = mysql.createPool({
@@ -863,7 +863,7 @@ const startServer = async () => {
     try {
         await initDatabase();
         console.log(`Conectado ao MySQL em ${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}`);
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`Servidor rodando na porta ${PORT}`);
             console.log(`Frontend assets: ${frontendStatic}`);
             console.log(`Frontend views (HTML): ${frontendViews}`);
