@@ -13,9 +13,9 @@ const PORT = process.env.PORT || 3000; // Porta do servidor, ou 3000 por padrão
 const JWT_SECRET = process.env.JWT_SECRET || 'Guilherme8151'; // Secret para JWT
 const MYSQL_HOST = process.env.MYSQL_HOST || 'localhost';
 const MYSQL_PORT = Number(process.env.MYSQL_PORT || 3306);
-const MYSQL_USER = process.env.MYSQL_USER || 'root';
+const MYSQL_USER = process.env.MYSQL_USER || 'u775111359_root';
 const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD || 'Guilherme8151';
-const MYSQL_DATABASE = process.env.MYSQL_DATABASE || 'pap';
+const MYSQL_DATABASE = process.env.MYSQL_DATABASE || 'u775111359_pap';
 
 const db = mysql.createPool({
     host: MYSQL_HOST,
