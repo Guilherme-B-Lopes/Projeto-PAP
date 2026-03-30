@@ -1,7 +1,7 @@
 const path = require('path');
 require('dotenv').config(); // Carrega variáveis de ambiente do .env
 const express = require('express');
-const mongoose = require('mongoose');
+const mysql = require('mysql2/promise');
 const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs');
@@ -10,8 +10,23 @@ const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3000; // Porta do servidor, ou 3000 por padrão
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://a30945_db_user:6Db5TjhyD5FENsiV@pap.0oyiile.mongodb.net/?appName=PAP'; // URI do MongoDB
 const JWT_SECRET = process.env.JWT_SECRET || 'Guilherme8151'; // Secret para JWT
+const MYSQL_HOST = process.env.MYSQL_HOST || 'localhost';
+const MYSQL_PORT = Number(process.env.MYSQL_PORT || 3306);
+const MYSQL_USER = process.env.MYSQL_USER || 'root';
+const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD || '';
+const MYSQL_DATABASE = process.env.MYSQL_DATABASE || 'pap';
+
+const db = mysql.createPool({
+    host: MYSQL_HOST,
+    port: MYSQL_PORT,
+    user: MYSQL_USER,
+    password: MYSQL_PASSWORD,
+    database: MYSQL_DATABASE,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
 
 // Criar diretórios de upload se não existirem
 const uploadDirs = {
@@ -73,10 +88,80 @@ const upload = multer({
     }
 });
 
-// 1. Conexão com o MongoDB
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('Conectado ao MongoDB!'))
-    .catch(err => console.error('Erro ao conectar ao MongoDB:', err));
+const formatUser = (row) => ({
+    _id: String(row.id),
+    id: String(row.id),
+    username: row.username,
+    email: row.email,
+    role: row.role,
+    createdAt: row.created_at
+});
+
+const formatProject = (row) => {
+    let images = [];
+    if (row.images_json) {
+        try {
+            images = JSON.parse(row.images_json);
+        } catch {
+            images = [];
+        }
+    }
+
+    return {
+        _id: String(row.id),
+        id: String(row.id),
+        name: row.name,
+        turma: row.turma,
+        description: row.description,
+        images,
+        image: row.image,
+        videoUrl: row.video_url,
+        category: row.category
+    };
+};
+
+const formatEvent = (row) => ({
+    _id: String(row.id),
+    id: String(row.id),
+    title: row.title,
+    date: row.event_date,
+    time: row.event_time
+});
+
+const initDatabase = async () => {
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(100) NOT NULL UNIQUE,
+            email VARCHAR(190) NOT NULL UNIQUE,
+            password VARCHAR(255) NOT NULL,
+            role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS projects (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            turma VARCHAR(255) NOT NULL,
+            description TEXT NOT NULL,
+            images_json LONGTEXT NOT NULL,
+            image VARCHAR(500) NULL,
+            video_url VARCHAR(500) NULL,
+            category ENUM('completo', 'incompleto', 'ideia') NOT NULL
+        )
+    `);
+
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS events (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            event_date VARCHAR(20) NOT NULL,
+            event_time VARCHAR(20) NOT NULL
+        )
+    `);
+};
 
 // 2. Middlewares
 app.use(cors()); // Permite requisições de diferentes origens (seu frontend)
@@ -86,31 +171,7 @@ app.use(express.urlencoded({ limit: '500mb', extended: true })); // Para formul�
 // Servir arquivos estáticos de uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// 3. Definição dos Schemas e Modelos (Mongoose)
-// ... (código anterior: require, mongoose.connect, middlewares, etc.)
-
-// Schema para Users
-const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true, trim: true },
-    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
-    password: { type: String, required: true, minlength: 6 },
-    role: { type: String, enum: ['admin', 'user'], default: 'user' },
-    createdAt: { type: Date, default: Date.now }
-});
-
-// Hash da senha antes de salvar
-userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next();
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
-});
-
-// Método para comparar senhas
-userSchema.methods.comparePassword = async function(candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
-};
-
-const User = mongoose.model('User', userSchema);
+// 3. Camada de acesso a dados (MySQL)
 
 // Middleware de autenticação
 const authenticateToken = (req, res, next) => {
@@ -138,33 +199,13 @@ const requireAdmin = (req, res, next) => {
     next();
 };
 
-// Schema para Projetos 
-const projectSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    turma: { type: String, required: true }, // Antigo 'price', agora 'turma'
-    description: { type: String, required: true },
-    // Suporte a múltiplas imagens; manter compat com campo único antigo via transformação no POST
-    images: { type: [String], default: [], validate: arr => Array.isArray(arr) },
-    image: { type: String, default: null }, // Capa do projeto (primeira imagem)
-    // URL opcional de vídeo (YouTube/Vimeo ou arquivo)
-    videoUrl: { type: String, default: null },
-    category: { 
-        type: String, 
-        enum: ['completo', 'incompleto', 'ideia'], 
-        required: true 
-    } // Nova categoria obrigatória
-});
-const Project = mongoose.model('Project', projectSchema);
-
-// ... (schema de Event permanece igual)
-
 // Rotas da API para Projetos 
 
 // GET todos os projetos
 app.get('/api/projects', async (req, res) => {
     try {
-        const projects = await Project.find();
-        res.json(projects);
+        const [rows] = await db.query('SELECT * FROM projects ORDER BY id DESC');
+        res.json(rows.map(formatProject));
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -198,35 +239,53 @@ app.put('/api/projects/:id', authenticateToken, requireAdmin, optionalMultipart,
         console.log('[PUT /api/projects/:id] Body:', req.body);
         console.log('[PUT /api/projects/:id] Files:', req.files);
 
-        const project = await Project.findById(req.params.id);
-        if (!project) {
+        const [existingRows] = await db.query('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+        if (existingRows.length === 0) {
             return res.status(404).json({ message: 'Projeto não encontrado' });
         }
+        const project = formatProject(existingRows[0]);
 
         // Atualizar campos básicos
-        if (req.body.name) project.name = req.body.name;
-        if (req.body.turma) project.turma = req.body.turma;
-        if (req.body.category) project.category = req.body.category;
-        if (req.body.description) project.description = req.body.description;
+        const updatedProject = { ...project };
+        if (req.body.name) updatedProject.name = req.body.name;
+        if (req.body.turma) updatedProject.turma = req.body.turma;
+        if (req.body.category) updatedProject.category = req.body.category;
+        if (req.body.description) updatedProject.description = req.body.description;
 
         // Processar imagens (apenas se novos ficheiros forem enviados)
         if (req.files && req.files.images && req.files.images.length > 0) {
             console.log('[PUT /api/projects/:id] Novos arquivos de imagem recebidos:', req.files.images.length);
             const newImages = req.files.images.map(file => `/uploads/images/${file.filename}`);
-            project.images = newImages;
-            project.image = newImages[0]; // Atualizar imagem de capa
+            updatedProject.images = newImages;
+            updatedProject.image = newImages[0]; // Atualizar imagem de capa
             console.log('[PUT /api/projects/:id] Imagens atualizadas:', newImages);
         }
 
         // Processar vídeo (apenas se novo ficheiro for enviado)
         if (req.files && req.files.video && req.files.video.length > 0) {
-            project.videoUrl = `/uploads/videos/${req.files.video[0].filename}`;
-            console.log('[PUT /api/projects/:id] Vídeo atualizado:', project.videoUrl);
+            updatedProject.videoUrl = `/uploads/videos/${req.files.video[0].filename}`;
+            console.log('[PUT /api/projects/:id] Vídeo atualizado:', updatedProject.videoUrl);
         }
 
-        const updatedProject = await project.save();
-        console.log('[PUT /api/projects/:id] Projeto atualizado com sucesso:', updatedProject._id);
-        res.json(updatedProject);
+        await db.query(
+            `UPDATE projects
+             SET name = ?, turma = ?, description = ?, images_json = ?, image = ?, video_url = ?, category = ?
+             WHERE id = ?`,
+            [
+                updatedProject.name,
+                updatedProject.turma,
+                updatedProject.description,
+                JSON.stringify(updatedProject.images || []),
+                updatedProject.image || null,
+                updatedProject.videoUrl || null,
+                updatedProject.category,
+                req.params.id
+            ]
+        );
+
+        const [rows] = await db.query('SELECT * FROM projects WHERE id = ?', [req.params.id]);
+        console.log('[PUT /api/projects/:id] Projeto atualizado com sucesso:', req.params.id);
+        res.json(formatProject(rows[0]));
     } catch (err) {
         console.error('[PUT /api/projects/:id] Erro ao atualizar projeto:', err);
         res.status(400).json({ message: err.message });
@@ -236,8 +295,8 @@ app.put('/api/projects/:id', authenticateToken, requireAdmin, optionalMultipart,
 // DELETE um projeto por ID - Apenas admin
 app.delete('/api/projects/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const deletedProject = await Project.findByIdAndDelete(req.params.id);
-        if (!deletedProject) return res.status(404).json({ message: 'Projeto não encontrado' });
+        const [result] = await db.query('DELETE FROM projects WHERE id = ?', [req.params.id]);
+        if (result.affectedRows === 0) return res.status(404).json({ message: 'Projeto não encontrado' });
         res.json({ message: 'Projeto excluído com sucesso' });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -247,16 +306,6 @@ app.delete('/api/projects/:id', authenticateToken, requireAdmin, async (req, res
 // ... (rotas de eventos permanecem iguais)
 
 // ... (resto do server.js: app.listen, etc.)
-
-// Schema para Eventos
-const eventSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    date: { type: String, required: true }, // Formato 'YYYY-MM-DD'
-    time: { type: String, required: true }  // Formato 'HH:MM'
-    // id: { type: String, unique: true, required: true } // Mongoose gera _id automaticamente, não precisamos de um id manual
-});
-const Event = mongoose.model('Event', eventSchema);
-
 
 // Rotas de Autenticação
 
@@ -274,30 +323,28 @@ app.post('/api/auth/register', async (req, res) => {
             return res.status(400).json({ message: 'A senha deve ter pelo menos 6 caracteres' });
         }
 
-        // Verificar se usuário já existe
-        const existingUser = await User.findOne({ 
-            $or: [{ username }, { email }] 
-        });
+        const [existingUsers] = await db.query(
+            'SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1',
+            [username, email]
+        );
 
-        if (existingUser) {
+        if (existingUsers.length > 0) {
             return res.status(400).json({ message: 'Usuário ou email já existe' });
         }
 
         // Criar novo usuário (apenas admin pode criar outros admins)
         const userRole = role === 'admin' ? 'user' : (role || 'user'); // Por segurança, não permitir criar admin diretamente
-
-        const user = new User({
-            username,
-            email,
-            password,
-            role: userRole
-        });
-
-        await user.save();
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const [result] = await db.query(
+            'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
+            [username, email, hashedPassword, userRole]
+        );
+        const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [result.insertId]);
+        const user = formatUser(rows[0]);
 
         // Gerar token JWT
         const token = jwt.sign(
-            { userId: user._id, username: user.username, role: user.role },
+            { userId: user.id, username: user.username, role: user.role },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -306,13 +353,17 @@ app.post('/api/auth/register', async (req, res) => {
             message: 'Usuário criado com sucesso',
             token,
             user: {
-                id: user._id,
+                id: user.id,
+                _id: user._id,
                 username: user.username,
                 email: user.email,
                 role: user.role
             }
         });
     } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ message: 'Usuário ou email já existe' });
+        }
         res.status(400).json({ message: err.message });
     }
 });
@@ -326,17 +377,18 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(400).json({ message: 'Username e senha são obrigatórios' });
         }
 
-        // Buscar usuário (pode ser por username ou email)
-        const user = await User.findOne({
-            $or: [{ username }, { email: username }]
-        });
-
-        if (!user) {
+        const [rows] = await db.query(
+            'SELECT * FROM users WHERE username = ? OR email = ? LIMIT 1',
+            [username, username]
+        );
+        if (rows.length === 0) {
             return res.status(401).json({ message: 'Credenciais inválidas' });
         }
+        const userRow = rows[0];
+        const user = formatUser(userRow);
 
         // Verificar senha
-        const isPasswordValid = await user.comparePassword(password);
+        const isPasswordValid = await bcrypt.compare(password, userRow.password);
 
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Credenciais inválidas' });
@@ -344,7 +396,7 @@ app.post('/api/auth/login', async (req, res) => {
 
         // Gerar token JWT
         const token = jwt.sign(
-            { userId: user._id, username: user.username, role: user.role },
+            { userId: user.id, username: user.username, role: user.role },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -353,7 +405,8 @@ app.post('/api/auth/login', async (req, res) => {
             message: 'Login realizado com sucesso',
             token,
             user: {
-                id: user._id,
+                id: user.id,
+                _id: user._id,
                 username: user.username,
                 email: user.email,
                 role: user.role
@@ -367,11 +420,14 @@ app.post('/api/auth/login', async (req, res) => {
 // GET /api/auth/me - Obter informações do usuário atual
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
     try {
-        const user = await User.findById(req.user.userId).select('-password');
-        if (!user) {
+        const [rows] = await db.query(
+            'SELECT id, username, email, role, created_at FROM users WHERE id = ? LIMIT 1',
+            [req.user.userId]
+        );
+        if (rows.length === 0) {
             return res.status(404).json({ message: 'Usuário não encontrado' });
         }
-        res.json(user);
+        res.json(formatUser(rows[0]));
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -380,8 +436,8 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 // GET /api/users - Listar todos os usuários (apenas admin)
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const users = await User.find().select('-password');
-        res.json(users);
+        const [rows] = await db.query('SELECT id, username, email, role, created_at FROM users ORDER BY id DESC');
+        res.json(rows.map(formatUser));
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -390,11 +446,14 @@ app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
 // GET /api/users/:id - Obter usuário específico (apenas admin)
 app.get('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select('-password');
-        if (!user) {
+        const [rows] = await db.query(
+            'SELECT id, username, email, role, created_at FROM users WHERE id = ? LIMIT 1',
+            [req.params.id]
+        );
+        if (rows.length === 0) {
             return res.status(404).json({ message: 'Usuário não encontrado' });
         }
-        res.json(user);
+        res.json(formatUser(rows[0]));
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -404,25 +463,50 @@ app.get('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
 app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const { username, email, role, password } = req.body;
-        const updateData = {};
-        
-        if (username) updateData.username = username;
-        if (email) updateData.email = email;
-        if (role && (role === 'admin' || role === 'user')) updateData.role = role;
-        if (password && password.length >= 6) updateData.password = password;
-        
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
-            updateData,
-            { new: true }
-        ).select('-password');
-        
-        if (!user) {
+        const updates = [];
+        const values = [];
+
+        if (username) {
+            updates.push('username = ?');
+            values.push(username);
+        }
+        if (email) {
+            updates.push('email = ?');
+            values.push(email);
+        }
+        if (role && (role === 'admin' || role === 'user')) {
+            updates.push('role = ?');
+            values.push(role);
+        }
+        if (password && password.length >= 6) {
+            updates.push('password = ?');
+            values.push(await bcrypt.hash(password, 10));
+        }
+
+        if (updates.length > 0) {
+            values.push(req.params.id);
+            const [result] = await db.query(
+                `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
+                values
+            );
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: 'Usuário não encontrado' });
+            }
+        }
+
+        const [rows] = await db.query(
+            'SELECT id, username, email, role, created_at FROM users WHERE id = ? LIMIT 1',
+            [req.params.id]
+        );
+        if (rows.length === 0) {
             return res.status(404).json({ message: 'Usuário não encontrado' });
         }
         
-        res.json({ message: 'Usuário atualizado com sucesso', user });
+        res.json({ message: 'Usuário atualizado com sucesso', user: formatUser(rows[0]) });
     } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ message: 'Username ou email já estão em uso' });
+        }
         res.status(400).json({ message: err.message });
     }
 });
@@ -431,12 +515,12 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
 app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {
         // Não permitir deletar a si mesmo
-        if (req.user.userId === req.params.id) {
+        if (String(req.user.userId) === String(req.params.id)) {
             return res.status(400).json({ message: 'Você não pode deletar sua própria conta' });
         }
         
-        const user = await User.findByIdAndDelete(req.params.id);
-        if (!user) {
+        const [result] = await db.query('DELETE FROM users WHERE id = ?', [req.params.id]);
+        if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Usuário não encontrado' });
         }
         
@@ -521,20 +605,23 @@ app.post('/api/projects', authenticateToken, upload.fields([
             console.log('[POST /api/projects] Vídeo processado:', videoUrl);
         }
 
-        const project = new Project({
-            name: req.body.name,
-            turma: req.body.turma,
-            description: req.body.description,
-            images: images,
-            image: images[0], // Primeira imagem como capa (compatibilidade)
-            videoUrl: videoUrl,
-            category: req.body.category
-        });
+        const [result] = await db.query(
+            `INSERT INTO projects (name, turma, description, images_json, image, video_url, category)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                req.body.name,
+                req.body.turma,
+                req.body.description,
+                JSON.stringify(images),
+                images[0] || null,
+                videoUrl,
+                req.body.category
+            ]
+        );
 
-        console.log('[POST /api/projects] Projeto criado:', project);
-        const newProject = await project.save();
-        console.log('[POST /api/projects] Projeto salvo com sucesso. ID:', newProject._id);
-        res.status(201).json(newProject);
+        const [rows] = await db.query('SELECT * FROM projects WHERE id = ?', [result.insertId]);
+        console.log('[POST /api/projects] Projeto salvo com sucesso. ID:', result.insertId);
+        res.status(201).json(formatProject(rows[0]));
     } catch (err) {
         console.error('[POST /api/projects] Erro ao salvar projeto:', err);
         console.error('[POST /api/projects] Stack:', err.stack);
@@ -549,8 +636,8 @@ app.post('/api/projects', authenticateToken, upload.fields([
 // GET todos os eventos
 app.get('/api/events', async (req, res) => {
     try {
-        const events = await Event.find();
-        res.json(events);
+        const [rows] = await db.query('SELECT * FROM events ORDER BY id DESC');
+        res.json(rows.map(formatEvent));
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -558,14 +645,13 @@ app.get('/api/events', async (req, res) => {
 
 // POST um novo evento - Apenas admin
 app.post('/api/events', authenticateToken, requireAdmin, async (req, res) => {
-    const event = new Event({
-        title: req.body.title,
-        date: req.body.date,
-        time: req.body.time
-    });
     try {
-        const newEvent = await event.save();
-        res.status(201).json(newEvent);
+        const [result] = await db.query(
+            'INSERT INTO events (title, event_date, event_time) VALUES (?, ?, ?)',
+            [req.body.title, req.body.date, req.body.time]
+        );
+        const [rows] = await db.query('SELECT * FROM events WHERE id = ?', [result.insertId]);
+        res.status(201).json(formatEvent(rows[0]));
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
@@ -574,9 +660,13 @@ app.post('/api/events', authenticateToken, requireAdmin, async (req, res) => {
 // PUT (atualizar) um evento por ID - Apenas admin
 app.put('/api/events/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const updatedEvent = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedEvent) return res.status(404).json({ message: 'Evento não encontrado' });
-        res.json(updatedEvent);
+        const [result] = await db.query(
+            'UPDATE events SET title = ?, event_date = ?, event_time = ? WHERE id = ?',
+            [req.body.title, req.body.date, req.body.time, req.params.id]
+        );
+        if (result.affectedRows === 0) return res.status(404).json({ message: 'Evento não encontrado' });
+        const [rows] = await db.query('SELECT * FROM events WHERE id = ?', [req.params.id]);
+        res.json(formatEvent(rows[0]));
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
@@ -585,8 +675,8 @@ app.put('/api/events/:id', authenticateToken, requireAdmin, async (req, res) => 
 // DELETE um evento por ID - Apenas admin
 app.delete('/api/events/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const deletedEvent = await Event.findByIdAndDelete(req.params.id);
-        if (!deletedEvent) return res.status(404).json({ message: 'Evento não encontrado' });
+        const [result] = await db.query('DELETE FROM events WHERE id = ?', [req.params.id]);
+        if (result.affectedRows === 0) return res.status(404).json({ message: 'Evento não encontrado' });
         res.json({ message: 'Evento excluído com sucesso' });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -597,7 +687,8 @@ app.delete('/api/events/:id', authenticateToken, requireAdmin, async (req, res) 
 // Rota para criar primeiro admin (apenas se não existir nenhum admin)
 app.post('/api/auth/create-admin', async (req, res) => {
     try {
-        const adminCount = await User.countDocuments({ role: 'admin' });
+        const [adminRows] = await db.query('SELECT COUNT(*) AS count FROM users WHERE role = ?', ['admin']);
+        const adminCount = adminRows[0].count;
         
         if (adminCount > 0) {
             return res.status(403).json({ message: 'Já existe um administrador no sistema' });
@@ -613,25 +704,24 @@ app.post('/api/auth/create-admin', async (req, res) => {
             return res.status(400).json({ message: 'A senha deve ter pelo menos 6 caracteres' });
         }
 
-        const existingUser = await User.findOne({ 
-            $or: [{ username }, { email }] 
-        });
-
-        if (existingUser) {
+        const [existingUsers] = await db.query(
+            'SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1',
+            [username, email]
+        );
+        if (existingUsers.length > 0) {
             return res.status(400).json({ message: 'Usuário ou email já existe' });
         }
 
-        const admin = new User({
-            username,
-            email,
-            password,
-            role: 'admin'
-        });
-
-        await admin.save();
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const [result] = await db.query(
+            'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
+            [username, email, hashedPassword, 'admin']
+        );
+        const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [result.insertId]);
+        const admin = formatUser(rows[0]);
 
         const token = jwt.sign(
-            { userId: admin._id, username: admin.username, role: admin.role },
+            { userId: admin.id, username: admin.username, role: admin.role },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -640,13 +730,17 @@ app.post('/api/auth/create-admin', async (req, res) => {
             message: 'Administrador criado com sucesso',
             token,
             user: {
-                id: admin._id,
+                id: admin.id,
+                _id: admin._id,
                 username: admin.username,
                 email: admin.email,
                 role: admin.role
             }
         });
     } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ message: 'Usuário ou email já existe' });
+        }
         res.status(400).json({ message: err.message });
     }
 });
@@ -765,9 +859,37 @@ app.get(/.*/, (req, res) => {
 });
 
 // 6. Iniciar o servidor
-app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
-    console.log(`Frontend assets: ${frontendStatic}`);
-    console.log(`Frontend views (HTML): ${frontendViews}`);
-    console.log(`Acesse: http://localhost:${PORT}`);
-});
+const startServer = async () => {
+    try {
+        await initDatabase();
+        console.log(`Conectado ao MySQL em ${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}`);
+        app.listen(PORT, () => {
+            console.log(`Servidor rodando na porta ${PORT}`);
+            console.log(`Frontend assets: ${frontendStatic}`);
+            console.log(`Frontend views (HTML): ${frontendViews}`);
+            console.log(`Acesse: http://localhost:${PORT}`);
+        });
+    } catch (err) {
+        if (err && err.code === 'ECONNREFUSED') {
+            console.error(
+                `Erro ao inicializar MySQL: ligação recusada em ${MYSQL_HOST}:${MYSQL_PORT}. ` +
+                'Confirma se o servidor MySQL está em execução e se a porta no .env está correta.'
+            );
+        } else if (err && err.code === 'ER_ACCESS_DENIED_ERROR') {
+            console.error(
+                `Erro ao inicializar MySQL: acesso negado para o utilizador "${MYSQL_USER}". ` +
+                'Verifica MYSQL_USER e MYSQL_PASSWORD no .env.'
+            );
+        } else if (err && err.code === 'ER_BAD_DB_ERROR') {
+            console.error(
+                `Erro ao inicializar MySQL: a base de dados "${MYSQL_DATABASE}" não existe. ` +
+                'Cria a base ou atualiza MYSQL_DATABASE no .env.'
+            );
+        } else {
+            console.error('Erro ao inicializar MySQL:', err);
+        }
+        process.exit(1);
+    }
+};
+
+startServer();
