@@ -6,7 +6,7 @@
     
     // Declarar API_URL localmente dentro da IIFE para evitar conflitos
     // Como estamos em uma IIFE, não há conflito com API_URL de outros arquivos
-    const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
     
     let allProjects = []; // Todos os projetos carregados
     let filteredProjects = []; // Projetos filtrados

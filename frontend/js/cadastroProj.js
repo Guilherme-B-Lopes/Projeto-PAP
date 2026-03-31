@@ -4,7 +4,7 @@
     'use strict';
     
     // Declarar API_URL localmente dentro da IIFE para evitar conflitos
-    const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
     // Verificar autenticação antes de permitir cadastro
     if (typeof requireAuth === 'function') {

@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 delete headers['content-type'];
             }
 
-            const response = await fetch(`${API_URL}/projects`, {
+            const response = await fetch(`/api/projects`, {
                 method: 'POST',
                 headers,
                 body: formData

@@ -1,6 +1,6 @@
 // calendario.js
 document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
     const currentMonthYearSpan = document.getElementById('currentMonthYear');
     const calendarGrid = document.getElementById('calendarGrid');

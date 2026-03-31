@@ -1,5 +1,5 @@
 // --- Lógica de Produtos (agora com Backend) ---
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 let projects = []; // Array de projetos carregado do backend
 
 //  elementos de modal (projetos) - serão inicializados no DOMContentLoaded

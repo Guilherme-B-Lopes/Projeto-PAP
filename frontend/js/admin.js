@@ -1,6 +1,6 @@
 // admin.js
 document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
     // Garantir que apenas administradores carreguem esta página
     if (typeof requireAuth === 'function') {
         if (!requireAuth(true)) return; // Vai redirecionar se não for admin
