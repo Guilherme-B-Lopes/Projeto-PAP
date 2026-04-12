@@ -1,6 +1,6 @@
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: false });
+require('dotenv').config({ path: path.resolve(__dirname, '.env'), override: false });
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
