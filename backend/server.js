@@ -11,7 +11,7 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 3000; // Porta do servidor, ou 3000 por padrão
 const JWT_SECRET = process.env.JWT_SECRET || 'Guilherme8151'; // Secret para JWT
-const MYSQL_HOST = process.env.MYSQL_HOST || 'localhost';
+const MYSQL_HOST = process.env.MYSQL_HOST || '127.0.0.1';
 const MYSQL_PORT = Number(process.env.MYSQL_PORT || 3306);
 const MYSQL_USER = process.env.MYSQL_USER || 'u775111359_root';
 const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD || 'Guilherme8151';
@@ -176,7 +176,10 @@ app.use('/api', (req, res, next) => {
 });
 
 // 2. Middlewares
-app.use(cors()); // Permite requisições de diferentes origens (seu frontend)
+app.use(cors({
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
+    credentials: true
+})); // Permite requisições de diferentes origens (seu frontend)
 app.use(express.json()); // Habilita o Express a ler JSON no corpo das requisições
 app.use(express.urlencoded({ limit: '500mb', extended: true })); // Para formulários urlencoded
 
